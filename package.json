@@ -29,6 +29,7 @@
     "vercel:deployment-logs": "ts-node -r tsconfig-paths/register scripts/fetch-vercel-deployment-logs.ts",
     "cursor:simple-repo-flow": "ts-node -r tsconfig-paths/register scripts/simple-cursor-repo-flow.ts",
     "spec-build:smoke": "ts-node -r tsconfig-paths/register scripts/spec-build-smoke.ts",
+    "integrations:check": "python3 scripts/check-integrations.py",
     "github:validate-pat": "ts-node -r tsconfig-paths/register scripts/validate-github-pat.ts",
     "cursor:validate-github": "ts-node -r tsconfig-paths/register scripts/validate-cursor-github.ts",
     "cursor:ask-smoke": "ts-node -r tsconfig-paths/register scripts/cursor-ask-smoke.ts",

@@ -280,10 +280,9 @@ export class PreflightService {
    * valid, and do we have calls left to seed a repo.
    */
   private async checkGithub(): Promise<PreflightCheck> {
-    // Bucket B (env migration): new IYONA_* name first, legacy JARVIS_* fallback.
+    // Generic GITHUB_PAT; legacy JARVIS_GITHUB_TOKEN kept as a fallback (Bucket B).
     const token =
       process.env.GITHUB_PAT?.trim() ||
-      process.env.IYONA_GITHUB_TOKEN?.trim() ||
       process.env.JARVIS_GITHUB_TOKEN?.trim() ||
       '';
 
@@ -294,8 +293,7 @@ export class PreflightService {
         status: 'down',
         blocking: true,
         reason: 'missing_config',
-        detail:
-          'No GitHub token configured (GITHUB_PAT / IYONA_GITHUB_TOKEN, legacy JARVIS_GITHUB_TOKEN)',
+        detail: 'No GitHub token configured (GITHUB_PAT)',
       };
     }
 

@@ -33,9 +33,9 @@ export interface SpecBuildJobSnapshot {
 const USER_SAFE_FAILED =
   'We could not build your app. Please try again or adjust your project idea.';
 const USER_SAFE_GITHUB =
-  'GitHub is not configured correctly on the server (invalid or expired token). Ask an admin to update GITHUB_PAT / IYONA_GITHUB_TOKEN (legacy JARVIS_GITHUB_TOKEN).';
+  'GitHub is not configured correctly on the server (invalid or expired token). Ask an admin to update GITHUB_PAT.';
 const USER_SAFE_CURSOR_GITHUB =
-  'Cursor cannot access the project GitHub repo. Install the Cursor GitHub App on the org that owns repos (IYONA_GITHUB_ORG, legacy JARVIS_GITHUB_ORG) in Cursor → Integrations, or point IYONA_GITHUB_ORG at an org Cursor already covers.';
+  'Cursor cannot access the project GitHub repo. Install the Cursor GitHub App on the org that owns repos (GITHUB_ORG) in Cursor → Integrations, or point GITHUB_ORG at an org Cursor already covers.';
 const USER_SAFE_INFLIGHT =
   'Another build is already running for this project. Wait for it to finish.';
 const USER_SAFE_STALLED =
