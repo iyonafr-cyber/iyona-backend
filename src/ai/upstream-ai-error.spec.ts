@@ -34,7 +34,9 @@ describe('mapModelScopedProviderError', () => {
   });
 
   it('leaves genuine upstream 500s unmapped so they stay bugs', () => {
-    expect(mapModelScopedProviderError(500, 'upstream boom', 'gpt-4o')).toBeNull();
+    expect(
+      mapModelScopedProviderError(500, 'upstream boom', 'gpt-4o'),
+    ).toBeNull();
   });
 
   it('leaves auth failures to the credential mapper', () => {

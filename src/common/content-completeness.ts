@@ -304,7 +304,10 @@ const STATIC_EXPORT_RE = /export\s+const\s+(\w+)(?:\s*:\s*[^=]+)?=\s*\[/g;
 
 /** Fold plural/singular + case so `cars` matches `Car` / `carList`-ish names. */
 function foldEntityName(s: string): string {
-  return s.toLowerCase().replace(/(list|data|items)$/, '').replace(/s$/, '');
+  return s
+    .toLowerCase()
+    .replace(/(list|data|items)$/, '')
+    .replace(/s$/, '');
 }
 
 function splitDataSourceIssues(
@@ -349,9 +352,7 @@ function splitDataSourceIssues(
       if (path === mod.path || isKitPath(path)) continue;
       const ext = extOf(path);
       if (ext !== '.tsx' && ext !== '.jsx') continue;
-      const importRe = new RegExp(
-        `from\\s+['"][^'"]*/data/${mod.base}['"]`,
-      );
+      const importRe = new RegExp(`from\\s+['"][^'"]*/data/${mod.base}['"]`);
       if (!importRe.test(content)) continue;
       issues.push({
         path,
@@ -377,7 +378,8 @@ function splitDataSourceIssues(
 const PUBLIC_SHELL_IMPORT_RE =
   /import\s+(?:\{[^}]*\}|\w+)\s+from\s+['"][^'"]*(?:components\/layout\/(?:Header|Footer|Navbar|PublicLayout|SiteHeader|SiteFooter))['"]/;
 
-const PUBLIC_SHELL_USAGE_RE = /<(Header|Footer|Navbar|PublicLayout|SiteHeader|SiteFooter)\b/;
+const PUBLIC_SHELL_USAGE_RE =
+  /<(Header|Footer|Navbar|PublicLayout|SiteHeader|SiteFooter)\b/;
 
 function isAdminPagePath(path: string): boolean {
   return /(^|\/)src\/(pages|views|routes)\/admin\//i.test(path);
@@ -429,9 +431,7 @@ function adminShellLeakIssues(
   return issues;
 }
 
-function structuralIssues(
-  files: Record<string, string>,
-): CompletenessIssue[] {
+function structuralIssues(files: Record<string, string>): CompletenessIssue[] {
   const issues: CompletenessIssue[] = [];
   const routes = collectDefinedRoutes(files);
 
@@ -455,7 +455,8 @@ function structuralIssues(
         if (target === '/') continue; // root virtually always exists
         const fs = firstSeg(target).toLowerCase();
         if (!fs || fs.startsWith(':')) continue; // fully-dynamic — can't verify
-        if (routes.firstSegments.has(fs) || routes.allSegments.has(fs)) continue;
+        if (routes.firstSegments.has(fs) || routes.allSegments.has(fs))
+          continue;
         if (seen.has(fs)) continue;
         seen.add(fs);
         issues.push({
@@ -547,7 +548,7 @@ function structuralIssues(
     // Landmarks + list-rendering loops both count as real content.
     const landmarks =
       (content.match(LANDMARK_RE)?.length ?? 0) +
-      Math.min(3, (content.match(/\.map\(/g)?.length ?? 0));
+      Math.min(3, content.match(/\.map\(/g)?.length ?? 0);
     if (landmarks < 2) {
       issues.push({
         path,
@@ -678,7 +679,8 @@ export function evaluateCompleteness(
       issues.push({
         path,
         reason: 'placeholder-only',
-        detail: 'heavy on headings, no real components — looks like a stub layout',
+        detail:
+          'heavy on headings, no real components — looks like a stub layout',
       });
       stubPathSet.add(path);
     }
@@ -686,10 +688,7 @@ export function evaluateCompleteness(
     // Detect files that redefine a UI kit primitive outside the kit directory.
     // The kit provides Button, Card, Input, Modal, Table, EmptyState, Skeleton, Toast, cn.
     // If the AI redefines one, it breaks the consistency guarantee.
-    if (
-      (ext === '.tsx' || ext === '.ts') &&
-      !isKitPath(path)
-    ) {
+    if ((ext === '.tsx' || ext === '.ts') && !isKitPath(path)) {
       const KIT_RE =
         /export\s+(?:default\s+)?(?:function|const)\s+(Button|Card|Input|Modal|Table|EmptyState|Skeleton|Toast|Tabs|Accordion|Breadcrumbs|Pagination|Avatar|StatCard|RatingStars|QuantityStepper|Drawer)\b/;
       const kitMatch = content.match(KIT_RE);
@@ -738,7 +737,9 @@ export function formatCompletenessHintForCursor(
   report: CompletenessReport,
 ): string {
   if (report.ok) return '';
-  const lines = report.issues.slice(0, 30).map((i) => `  - ${i.path}: ${i.detail}`);
+  const lines = report.issues
+    .slice(0, 30)
+    .map((i) => `  - ${i.path}: ${i.detail}`);
   return [
     'CONTENT & COMPLETENESS (high priority before Vercel):',
     'These files are placeholders, too thin, or structurally incomplete (dead links,',

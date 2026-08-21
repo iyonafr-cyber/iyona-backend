@@ -63,9 +63,9 @@ export class VercelService implements IVercelService {
   ): Promise<VercelDeployment> {
     try {
       // Pull the analytics provider out of the build-env block so we
-      // can also bake it into `index.html` as a `window.__JARVIS_ANALYTICS__`
+      // can also bake it into `index.html` as a `window.__IYONA_ANALYTICS__`
       // global. Without this, visitors who load the deployed app
-      // outside the Jarvis workspace would never get the provider
+      // outside the Iyona workspace would never get the provider
       // configured (the bridge waits for either a parent message or a
       // preset — visitors have neither).
       const analyticsForBridge =
@@ -85,7 +85,7 @@ export class VercelService implements IVercelService {
       // all downstream env / config injection. The bridge is the
       // foundation for E3 (runtime errors), E6 (click-to-edit) and
       // E13 (analytics) — see preview-bridge/preview-bridge.ts.
-      // E6 — annotate JSX with `data-jarvis-src` BEFORE the bridge so
+      // E6 — annotate JSX with `data-iyona-src` BEFORE the bridge so
       // the lookups the bridge does at click time always succeed. Done
       // first so SEO + analytics injection see the annotated files
       // (analyzers occasionally inspect JSX too).
@@ -132,6 +132,10 @@ export class VercelService implements IVercelService {
         }),
       );
 
+      // Bucket B (compat): the `jarvis-` Vercel project-name prefix is KEPT.
+      // Every existing project is deployed as `jarvis-<projectId>`; changing the
+      // prefix would orphan those deployments (new name → new Vercel project) and
+      // break their live preview URL. Prefix rename belongs to the infra cutover.
       const deploymentName = `jarvis-${projectId}`;
 
       const params = this.teamId ? { teamId: this.teamId } : {};
@@ -327,7 +331,7 @@ export class VercelService implements IVercelService {
 
   /**
    * Best-effort delete of an entire Vercel project (e.g. `jarvis-<id>`) when a
-   * Jarvis project is hard-purged. Deleting the project also releases its
+   * Iyona project is hard-purged. Deleting the project also releases its
    * domains and deployments on Vercel's side. Errors are logged, not thrown —
    * purge must continue even if this fails.
    */
@@ -696,7 +700,7 @@ export class VercelService implements IVercelService {
     return { frameAncestors, acaoHeader };
   }
 
-  private buildJarvisPreviewSecurityHeaders(
+  private buildIyonaPreviewSecurityHeaders(
     frameAncestors: string,
     acaoHeader: string,
     cspValue: string,
@@ -723,7 +727,7 @@ export class VercelService implements IVercelService {
   }
 
   /**
-   * Ensures `frame-ancestors` (and related preview headers) allow the Jarvis
+   * Ensures `frame-ancestors` (and related preview headers) allow the Iyona
    * workspace to embed the deployment, even when the AI ships its own
    * `vercel.json`. Previously we only injected when `vercel.json` was absent,
    * so a stricter user config could block `localhost:5173` and the iframe
@@ -734,7 +738,7 @@ export class VercelService implements IVercelService {
   ): void {
     const { frameAncestors, acaoHeader } = this.resolvePreviewHeaderEnv();
     const defaultCsp = `frame-ancestors ${frameAncestors};`;
-    const jarvisHeaders = this.buildJarvisPreviewSecurityHeaders(
+    const iyonaHeaders = this.buildIyonaPreviewSecurityHeaders(
       frameAncestors,
       acaoHeader,
       defaultCsp,
@@ -752,7 +756,7 @@ export class VercelService implements IVercelService {
         {
           rewrites: [{ source: '/(.*)', destination: '/index.html' }],
           framework: 'vite',
-          headers: [{ source: '/(.*)', headers: jarvisHeaders }],
+          headers: [{ source: '/(.*)', headers: iyonaHeaders }],
         },
         null,
         2,
@@ -771,7 +775,7 @@ export class VercelService implements IVercelService {
         {
           rewrites: [{ source: '/(.*)', destination: '/index.html' }],
           framework: 'vite',
-          headers: [{ source: '/(.*)', headers: jarvisHeaders }],
+          headers: [{ source: '/(.*)', headers: iyonaHeaders }],
         },
         null,
         2,
@@ -781,7 +785,7 @@ export class VercelService implements IVercelService {
     }
 
     this.stripXFrameOptionsFromAllHeaderRules(parsed);
-    this.mergeJarvisHeadersIntoVercelConfig(parsed, {
+    this.mergeIyonaHeadersIntoVercelConfig(parsed, {
       frameAncestors,
       acaoHeader,
     });
@@ -839,12 +843,12 @@ export class VercelService implements IVercelService {
     return `${trimmed}; frame-ancestors ${frameAncestors}`;
   }
 
-  private mergeJarvisHeadersIntoVercelConfig(
+  private mergeIyonaHeadersIntoVercelConfig(
     parsed: Record<string, unknown>,
     env: { frameAncestors: string; acaoHeader: string },
   ): void {
     const { frameAncestors, acaoHeader } = env;
-    const jarvisControlledKeys = new Set([
+    const iyonaControlledKeys = new Set([
       'content-security-policy',
       'access-control-allow-origin',
       'vary',
@@ -871,7 +875,7 @@ export class VercelService implements IVercelService {
       const defaultCsp = `frame-ancestors ${frameAncestors};`;
       headerRules.push({
         source: '/(.*)',
-        headers: this.buildJarvisPreviewSecurityHeaders(
+        headers: this.buildIyonaPreviewSecurityHeaders(
           frameAncestors,
           acaoHeader,
           defaultCsp,
@@ -894,7 +898,7 @@ export class VercelService implements IVercelService {
         userCsp = String(e['value'] ?? '');
         continue;
       }
-      if (jarvisControlledKeys.has(lower)) continue;
+      if (iyonaControlledKeys.has(lower)) continue;
       entries.push({ key, value: String(e['value'] ?? '') });
     }
 
@@ -902,11 +906,11 @@ export class VercelService implements IVercelService {
       ? this.mergeFrameAncestorsIntoCsp(userCsp, frameAncestors)
       : `frame-ancestors ${frameAncestors};`;
 
-    const mergedJarvis = this.buildJarvisPreviewSecurityHeaders(
+    const mergedIyona = this.buildIyonaPreviewSecurityHeaders(
       frameAncestors,
       acaoHeader,
       mergedCsp,
     );
-    rule['headers'] = [...entries, ...mergedJarvis];
+    rule['headers'] = [...entries, ...mergedIyona];
   }
 }

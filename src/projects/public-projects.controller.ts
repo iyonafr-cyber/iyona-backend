@@ -6,7 +6,6 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags, ApiResponse } from '@nestjs/swagger';
 import { PublicProjectsService } from './public-projects.service';
 import { PublicProjectDto } from './dto/public-project.dto';
 
@@ -19,13 +18,10 @@ import { PublicProjectDto } from './dto/public-project.dto';
  * Everything here returns the redacted `PublicProjectDto` — never the
  * owner email, Supabase keys, payment keys, or any private field.
  */
-@ApiTags('Public Projects')
 @Controller('public')
 export class PublicProjectsController {
   constructor(private readonly publicProjectsService: PublicProjectsService) {}
 
-  @ApiOperation({ summary: 'Fetch a published project by its slug' })
-  @ApiResponse({ status: 200, type: PublicProjectDto })
   @Get('projects/:slug')
   @HttpCode(HttpStatus.OK)
   async getBySlug(
@@ -35,8 +31,6 @@ export class PublicProjectsController {
     return { data };
   }
 
-  @ApiOperation({ summary: 'List admin-curated templates' })
-  @ApiResponse({ status: 200, type: [PublicProjectDto] })
   @Get('templates')
   @HttpCode(HttpStatus.OK)
   async listTemplates(
@@ -46,14 +40,6 @@ export class PublicProjectsController {
     return { data };
   }
 
-  @ApiOperation({ summary: 'List distinct template categories' })
-  @ApiResponse({
-    status: 200,
-    schema: {
-      type: 'object',
-      properties: { data: { type: 'array', items: { type: 'string' } } },
-    },
-  })
   @Get('templates/categories')
   @HttpCode(HttpStatus.OK)
   async listCategories(): Promise<{ data: string[] }> {

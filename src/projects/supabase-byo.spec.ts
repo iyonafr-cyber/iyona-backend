@@ -239,7 +239,7 @@ describe('status field consistency', () => {
    * managed row with a project ref but no service-role key reported
    * `migrationMode: 'none'` (correct — not usable) alongside
    * `autoMigrations: true`, i.e. "we apply your schema automatically" for a
-   * database Jarvis could not reach. Derive one from the other, never both
+   * database Iyona could not reach. Derive one from the other, never both
    * from the raw fields.
    */
   const autoFromMode = (m: string) => m === 'postgres' || m === 'mgmt';
@@ -255,9 +255,7 @@ describe('status field consistency', () => {
   for (const [name, sb] of cases) {
     it(`${name}: autoMigrations agrees with migrationMode`, () => {
       const mode = resolveSupabaseMigrationMode(sb);
-      expect(autoFromMode(mode)).toBe(
-        mode === 'postgres' || mode === 'mgmt',
-      );
+      expect(autoFromMode(mode)).toBe(mode === 'postgres' || mode === 'mgmt');
       // A project that is not usable must never claim automatic migrations.
       if (!isSupabaseReadyForUse(sb)) {
         expect(autoFromMode(mode)).toBe(false);

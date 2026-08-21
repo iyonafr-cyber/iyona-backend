@@ -230,7 +230,9 @@ describe('PreflightService', () => {
     // Cursor comes back — the very next call must see it, not a stale "down".
     (mockedAxios.get as jest.Mock).mockImplementation((url: string) =>
       url.includes('api.github.com/rate_limit')
-        ? Promise.resolve({ data: { resources: { core: { remaining: 4999 } } } })
+        ? Promise.resolve({
+            data: { resources: { core: { remaining: 4999 } } },
+          })
         : Promise.resolve({ data: {} }),
     );
     expect((await service.checkBuildReadiness('u1')).ready).toBe(true);
@@ -311,9 +313,11 @@ describe('PreflightService', () => {
     expect(result.ready).toBe(true);
     expect(llm?.status).toBe('ok');
     // And it never spent a request on the provider it would not use.
-    const testKey = (service as unknown as {
-      providerKeys: { testKey: jest.Mock };
-    }).providerKeys.testKey;
+    const testKey = (
+      service as unknown as {
+        providerKeys: { testKey: jest.Mock };
+      }
+    ).providerKeys.testKey;
     expect(testKey).not.toHaveBeenCalledWith('anthropic-1');
   });
 

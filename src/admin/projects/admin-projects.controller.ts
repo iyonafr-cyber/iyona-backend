@@ -9,7 +9,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { IsBoolean, IsOptional, IsString, MaxLength } from 'class-validator';
 import { AuthGuard } from '../../auth/guards/auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
@@ -61,8 +60,6 @@ export class DeleteProjectDto {
   reason?: string;
 }
 
-@ApiTags('admin-projects')
-@ApiBearerAuth('JWT-auth')
 @Controller('admin/projects')
 @UseGuards(AuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
@@ -70,7 +67,6 @@ export class AdminProjectsController {
   constructor(private readonly adminProjects: AdminProjectsService) {}
 
   @Get()
-  @ApiOperation({ summary: 'List projects with owner joined' })
   async list(
     @Query('q') q?: string,
     @Query('ownerId') ownerId?: string,
@@ -93,14 +89,12 @@ export class AdminProjectsController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Project detail with owner + counts' })
   async detail(@Param('id') id: string) {
     const data = await this.adminProjects.detail(id);
     return { data };
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Patch project (takedown, lock, name)' })
   async patch(
     @Param('id') id: string,
     @Body() dto: PatchAdminProjectDto,
@@ -112,7 +106,6 @@ export class AdminProjectsController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Soft-delete a project' })
   async delete(
     @Param('id') id: string,
     @Body() dto: DeleteProjectDto,

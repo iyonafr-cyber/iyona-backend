@@ -23,10 +23,10 @@ import {
  *      `$inc` `occurrences` instead of inserting a fresh row.
  *
  *   2. **List**: the workspace pulls the most recent open errors so
- *      the PreviewPanel can render the "X errors — Send to Jarvis"
+ *      the PreviewPanel can render the "X errors — Send to Iyona"
  *      pill.
  *
- *   3. **Update**: when a user clicks "Send to Jarvis" or "Dismiss",
+ *   3. **Update**: when a user clicks "Send to Iyona" or "Dismiss",
  *      we mark the row so the pill reflects reality.
  *
  * Authorization is enforced upstream (the controller asserts the

@@ -15,7 +15,6 @@ import {
   HttpException,
   BadRequestException,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import type { Request } from 'express';
@@ -44,8 +43,6 @@ function userIdFromRequest(req: Request): {
   };
 }
 
-@ApiTags('SpecBuild')
-@ApiBearerAuth('JWT-auth')
 @UseGuards(AuthGuard, RolesGuard)
 @Roles(UserRole.USER)
 @Controller('spec-build')
@@ -60,10 +57,6 @@ export class SpecBuildController {
 
   @Post('run')
   @HttpCode(HttpStatus.ACCEPTED)
-  @ApiOperation({
-    summary:
-      'Queue spec→Cursor build (brief → seed → Cursor agent → deploy). Poll GET jobs/:jobId.',
-  })
   async run(@Body() dto: RunSpecBuildDto, @Req() req: Request) {
     const { userId } = userIdFromRequest(req);
 
@@ -105,7 +98,6 @@ export class SpecBuildController {
 
   @Get('jobs/:jobId')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Poll a spec→Cursor build job.' })
   async getJob(
     @Param('jobId') jobId: string,
     @Query('projectId') projectId: string,

@@ -101,7 +101,7 @@ export class ProjectError {
   })
   status!: ProjectErrorStatus;
 
-  /** Becomes true once the user clicked "Send to Jarvis" on this row. */
+  /** Becomes true once the user clicked "Send to Iyona" on this row. */
   @Prop({ type: Boolean, default: false })
   sentToChat!: boolean;
 }

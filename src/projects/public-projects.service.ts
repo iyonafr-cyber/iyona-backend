@@ -212,7 +212,7 @@ export class PublicProjectsService {
           isTemplate: true,
           templateCategory: p.templateCategory,
           remixCount: p.remixCount ?? 0,
-          ownerDisplayName: 'Jarvis',
+          ownerDisplayName: 'Iyona',
           createdAt: (p as any).createdAt,
         }),
       );

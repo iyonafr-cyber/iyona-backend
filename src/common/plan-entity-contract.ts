@@ -85,7 +85,10 @@ const FORM_NOISE = new Set([
 function extractFieldNames(text: string): string[] {
   const out: string[] = [];
   for (const rawPart of text.split(',')) {
-    const part = rawPart.replace(/\([^)]*\)/g, ' ').replace(/[*`]/g, '').trim();
+    const part = rawPart
+      .replace(/\([^)]*\)/g, ' ')
+      .replace(/[*`]/g, '')
+      .trim();
     if (!part) continue;
     const m = /\b([a-z][a-zA-Z0-9_]*)\b/.exec(part);
     if (!m) continue;
@@ -111,8 +114,7 @@ export function parsePlanEntityContracts(brief: string): PlanEntityContract[] {
     const line = lines[i];
     const row = CONTRACT_ROW_RE.exec(line);
     const source = row ? row[4].trim().toLowerCase() : '';
-    const isContractRow =
-      !!row && (source === 'user' || source === 'system');
+    const isContractRow = !!row && (source === 'user' || source === 'system');
 
     if (!isContractRow) {
       // A non-contract line closes the current table.

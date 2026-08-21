@@ -1,5 +1,4 @@
 import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
-import { ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { ApiKeyAuthGuard } from './guards/api-key-auth.guard';
@@ -18,8 +17,7 @@ import { ProjectsService } from '../projects/projects.service';
  *   - read endpoints  → projects:read (admin satisfies as wildcard)
  *   - write endpoints → projects:write (none yet — added in follow-up)
  */
-@ApiTags('Public API (E11)')
-@ApiSecurity('api-key')
+
 @UseGuards(ApiKeyAuthGuard)
 @Throttle({ medium: { limit: 60, ttl: 60_000 } })
 @Controller({ path: 'public', version: '1' })
@@ -29,9 +27,6 @@ export class PublicApiController {
     private readonly projectsService: ProjectsService,
   ) {}
 
-  @ApiOperation({
-    summary: 'Whoami — returns the org and scopes attached to the API key.',
-  })
   @Get('whoami')
   whoami(@Req() req: Request) {
     return {
@@ -43,9 +38,6 @@ export class PublicApiController {
     };
   }
 
-  @ApiOperation({
-    summary: 'List projects belonging to the org owner. Paginated.',
-  })
   @RequireScopes('projects:read')
   @Get('projects')
   async listProjects(
@@ -63,7 +55,6 @@ export class PublicApiController {
     return { data: result };
   }
 
-  @ApiOperation({ summary: 'Fetch a single project by id.' })
   @RequireScopes('projects:read')
   @Get('projects/:id')
   async getProject(@Req() req: Request, @Param('id') id: string) {

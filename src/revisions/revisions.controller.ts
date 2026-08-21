@@ -13,14 +13,6 @@ import {
   HttpException,
 } from '@nestjs/common';
 import { RevisionsService } from './revisions.service';
-import {
-  ApiOperation,
-  ApiTags,
-  ApiBearerAuth,
-  ApiResponse,
-  ApiParam,
-  ApiQuery,
-} from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorator/roles.decorator';
@@ -37,8 +29,6 @@ import {
   CurrentUserPayload,
 } from '../auth/decorator/current-user.decorator';
 
-@ApiTags('Revisions')
-@ApiBearerAuth('JWT-auth')
 @UseGuards(AuthGuard, RolesGuard)
 @Roles(UserRole.USER)
 @Controller('projects/:projectId/revisions')
@@ -50,13 +40,6 @@ export class RevisionsController {
     private readonly projectsService: ProjectsService,
   ) {}
 
-  @ApiOperation({ summary: 'Create a new revision for a project' })
-  @ApiParam({ name: 'projectId', description: 'Project ID' })
-  @ApiResponse({
-    status: 201,
-    description: 'Revision created successfully',
-    type: RevisionDto,
-  })
   @Post()
   async createRevision(
     @Param('projectId') projectId: string,
@@ -71,19 +54,6 @@ export class RevisionsController {
     return { data: revision };
   }
 
-  @ApiOperation({ summary: 'Create revision and deploy in one step' })
-  @ApiParam({ name: 'projectId', description: 'Project ID' })
-  @ApiQuery({
-    name: 'framework',
-    required: false,
-    description: 'Framework (default: vite)',
-  })
-  @ApiResponse({
-    status: 202,
-    description:
-      'Revision created and deployment accepted. Poll /deployments/:deploymentId/status for readiness.',
-    type: DeployPreviewResponseDto,
-  })
   @Post('deploy')
   @HttpCode(HttpStatus.ACCEPTED)
   async createAndDeploy(
@@ -145,13 +115,6 @@ export class RevisionsController {
     }
   }
 
-  @ApiOperation({ summary: 'Get all revisions for a project' })
-  @ApiParam({ name: 'projectId', description: 'Project ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'List of revisions',
-    type: [RevisionDto],
-  })
   @Get()
   async getRevisions(
     @Param('projectId') projectId: string,
@@ -163,13 +126,6 @@ export class RevisionsController {
     return { data: revisions };
   }
 
-  @ApiOperation({ summary: 'Get the latest revision for a project' })
-  @ApiParam({ name: 'projectId', description: 'Project ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Latest revision',
-    type: RevisionDto,
-  })
   @Get('latest')
   async getLatestRevision(
     @Param('projectId') projectId: string,
@@ -180,26 +136,6 @@ export class RevisionsController {
     return { data: revision };
   }
 
-  @ApiOperation({ summary: 'Get files from the latest revision for a project' })
-  @ApiParam({ name: 'projectId', description: 'Project ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Latest revision files',
-    schema: {
-      type: 'object',
-      properties: {
-        data: {
-          type: 'object',
-          additionalProperties: { type: 'string' },
-          nullable: true,
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Project not found',
-  })
   @Get('latest/files')
   async getLatestRevisionFiles(
     @Param('projectId') projectId: string,
@@ -221,16 +157,6 @@ export class RevisionsController {
     }
   }
 
-  @ApiOperation({
-    summary:
-      'Get full source tree for the latest revision for local development',
-  })
-  @ApiParam({ name: 'projectId', description: 'Project ID' })
-  @ApiResponse({
-    status: 200,
-    description:
-      'Complete file map (package.json, vite.config.ts, src/**, …) — run with npm install && npm run dev',
-  })
   @Get('latest/full-source')
   async getLatestRevisionFullSource(
     @Param('projectId') projectId: string,
@@ -250,23 +176,6 @@ export class RevisionsController {
     }
   }
 
-  @ApiOperation({ summary: 'Get the stable preview URL for a project' })
-  @ApiParam({ name: 'projectId', description: 'Project ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Preview URL',
-    schema: {
-      type: 'object',
-      properties: {
-        data: {
-          type: 'object',
-          properties: {
-            previewUrl: { type: 'string', nullable: true },
-          },
-        },
-      },
-    },
-  })
   @Get('preview')
   async getPreviewUrl(
     @Param('projectId') projectId: string,
@@ -288,16 +197,6 @@ export class RevisionsController {
     }
   }
 
-  @ApiOperation({
-    summary:
-      'Latest deployment status for this project (stable polling id + URLs). Use after reconnect or client timeout.',
-  })
-  @ApiParam({ name: 'projectId', description: 'Project ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Current deployment snapshot',
-    type: DeployPreviewResponseDto,
-  })
   @Get('deployments/current')
   async getCurrentDeployment(
     @Param('projectId') projectId: string,
@@ -309,16 +208,6 @@ export class RevisionsController {
     return { data: result };
   }
 
-  @ApiOperation({
-    summary: 'Poll the status of a running Vercel deployment for this project',
-  })
-  @ApiParam({ name: 'projectId', description: 'Project ID' })
-  @ApiParam({ name: 'deploymentId', description: 'Vercel deployment ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Current deployment status',
-    type: DeployPreviewResponseDto,
-  })
   @Get('deployments/:deploymentId/status')
   async getDeploymentStatus(
     @Param('projectId') projectId: string,
@@ -333,14 +222,6 @@ export class RevisionsController {
     return { data: result };
   }
 
-  @ApiOperation({ summary: 'Get a specific revision' })
-  @ApiParam({ name: 'projectId', description: 'Project ID' })
-  @ApiParam({ name: 'revisionId', description: 'Revision ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Revision details',
-    type: RevisionDto,
-  })
   @Get(':revisionId')
   async getRevision(
     @Param('projectId') projectId: string,
@@ -355,22 +236,6 @@ export class RevisionsController {
     return { data: revision };
   }
 
-  @ApiOperation({ summary: 'Get files from a revision' })
-  @ApiParam({ name: 'projectId', description: 'Project ID' })
-  @ApiParam({ name: 'revisionId', description: 'Revision ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Revision files',
-    schema: {
-      type: 'object',
-      properties: {
-        data: {
-          type: 'object',
-          additionalProperties: { type: 'string' },
-        },
-      },
-    },
-  })
   @Get(':revisionId/files')
   async getRevisionFiles(
     @Param('projectId') projectId: string,
@@ -385,17 +250,6 @@ export class RevisionsController {
     return { data: files };
   }
 
-  @ApiOperation({
-    summary:
-      'Start deploying a revision to Vercel. Returns immediately (202) with the deployment id; clients should poll /deployments/:deploymentId/status for readiness.',
-  })
-  @ApiParam({ name: 'projectId', description: 'Project ID' })
-  @ApiParam({ name: 'revisionId', description: 'Revision ID' })
-  @ApiResponse({
-    status: 202,
-    description: 'Deployment accepted; poll for status',
-    type: DeployPreviewResponseDto,
-  })
   @Post(':revisionId/deploy-preview')
   @HttpCode(HttpStatus.ACCEPTED)
   async deployPreview(

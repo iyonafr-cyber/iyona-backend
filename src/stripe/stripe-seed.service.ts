@@ -269,7 +269,7 @@ export class StripeSeedService {
     } else {
       product = await stripe.products.create({
         name: `Credits — ${pack.name}`,
-        description: `${pack.credits} Jarvis credits (one-off top-up).`,
+        description: `${pack.credits} Iyona credits (one-off top-up).`,
         metadata: {
           credit_topup: 'true',
           topup_pack: pack.id,

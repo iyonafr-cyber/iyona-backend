@@ -1,10 +1,10 @@
 /**
- * Kill switch for Jarvis-managed Supabase provisioning (decision 07).
+ * Kill switch for Iyona-managed Supabase provisioning (decision 07).
  *
  * Managed provisioning creates a Supabase project per generated app inside the
  * PLATFORM org, using `SUPABASE_MGMT_TOKEN`. It works, but the free tier caps
  * active projects per org — dev hit that ceiling and every subsequent "needs a
- * database" chat failed — and it makes Jarvis the owner and payer of every
+ * database" chat failed — and it makes Iyona the owner and payer of every
  * database it creates. BYO (owner connects their own project) replaces it.
  *
  * The code stays: it is the basis of a future paid "hosted database" tier, so
@@ -25,5 +25,5 @@ export function isManagedProvisioningEnabled(): boolean {
 
 /** Message shown when something tries to provision while the flag is off. */
 export const MANAGED_PROVISIONING_DISABLED_MESSAGE =
-  'Jarvis no longer creates databases for you. Connect your own Supabase project ' +
+  'Iyona no longer creates databases for you. Connect your own Supabase project ' +
   'in Project settings → Database, then continue.';

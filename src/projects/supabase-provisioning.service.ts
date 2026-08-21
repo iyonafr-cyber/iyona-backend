@@ -137,7 +137,7 @@ export class SupabaseProvisioningService {
   }
 
   /**
-   * Provision a Supabase project for the given Jarvis project and persist the
+   * Provision a Supabase project for the given Iyona project and persist the
    * encrypted credentials. Runs detached from the HTTP request that triggered
    * it. Errors are captured onto `supabase.provisioningError` for the SPA.
    */
@@ -168,13 +168,13 @@ export class SupabaseProvisioningService {
       if (!this.supabaseService.isEnabled()) {
         await this.markSupabaseFailed(
           projectId,
-          'Supabase Management API is not configured on this Jarvis instance. Ask the operator to set SUPABASE_MGMT_TOKEN / SUPABASE_ORG_ID.',
+          'Supabase Management API is not configured on this Iyona instance. Ask the operator to set SUPABASE_MGMT_TOKEN / SUPABASE_ORG_ID.',
         );
         return;
       }
 
       const provisioned = await this.supabaseService.provisionProject({
-        name: `jarvis-${projectId}`,
+        name: `jarvis-${projectId}`, // Bucket B: keep prefix — existing provisioned Supabase projects are named jarvis-<id>
       });
 
       const encrypted = this.encryptionService.encrypt(

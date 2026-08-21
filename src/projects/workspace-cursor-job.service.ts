@@ -373,7 +373,7 @@ export class WorkspaceCursorJobService {
         let enrichedPrompt = prompt;
         if (isSupabaseReadyForUse(project.supabase)) {
           // Decision 07 — the agent still emits __schema__.json either way.
-          // What changes is who runs it: Jarvis applies it automatically when
+          // What changes is who runs it: Iyona applies it automatically when
           // there is a DDL transport, and hands it to the owner as SQL when
           // there isn't. The agent must know, because in manual mode the
           // tables genuinely may not exist when the app first loads and the
@@ -390,11 +390,11 @@ export class WorkspaceCursorJobService {
             'When the request involves backend, data, "logic", persistence, or auth, use Supabase — not mock data or localStorage for those entities.',
             'Environment variables available at runtime: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY.',
             'Use @supabase/supabase-js createClient for data access. Use supabase.auth for authentication.',
-            'ROLES: a public.profiles table (id, email, role) with an is_admin() helper backs authorisation. Guard /admin routes on role === "admin", not just on being logged in. The admin account is created by the app owner from Jarvis project settings — never build an admin signup or seed admin credentials in code.',
+            'ROLES: a public.profiles table (id, email, role) with an is_admin() helper backs authorisation. Guard /admin routes on role === "admin", not just on being logged in. The admin account is created by the app owner from Iyona project settings — never build an admin signup or seed admin credentials in code.',
             'If you create or modify database tables, emit a __schema__.json file with the schema declaration.',
             ...(ownerRunsMigrations
               ? [
-                  'SCHEMA IS APPLIED BY THE OWNER, NOT AUTOMATICALLY: Jarvis cannot run DDL against this database. Your __schema__.json is rendered as SQL for the owner to run in the Supabase SQL editor, so a table you declare may not exist yet at runtime.',
+                  'SCHEMA IS APPLIED BY THE OWNER, NOT AUTOMATICALLY: Iyona cannot run DDL against this database. Your __schema__.json is rendered as SQL for the owner to run in the Supabase SQL editor, so a table you declare may not exist yet at runtime.',
                   'Therefore: handle query errors and empty results gracefully on every page that reads a table — render an empty state, never an unhandled crash or an infinite spinner. Do NOT fall back to mock arrays; an empty state is correct, fake data is not.',
                 ]
               : []),

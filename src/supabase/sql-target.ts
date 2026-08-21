@@ -1,14 +1,14 @@
 /**
  * Where a piece of DDL is executed.
  *
- * Jarvis has two transports to a project's Postgres and they are not
+ * Iyona has two transports to a project's Postgres and they are not
  * interchangeable:
  *
  * - `mgmt` — the Supabase Management API SQL endpoint, authenticated with the
  *   PLATFORM token (`SUPABASE_MGMT_TOKEN`). Only works for projects inside
- *   Jarvis's own Supabase org, i.e. managed provisioning (decision 07).
+ *   Iyona's own Supabase org, i.e. managed provisioning (decision 07).
  * - `postgres` — a direct connection with the project owner's own database
- *   password. Works for any Supabase project, including ones Jarvis has no
+ *   password. Works for any Supabase project, including ones Iyona has no
  *   Management API access to. This is the BYO path.
  *
  * Everything downstream (migration ledger, RLS gate, schema apply, profiles

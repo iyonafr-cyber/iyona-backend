@@ -1,5 +1,4 @@
 import { Body, Controller, Get, Inject, Req, UseGuards } from '@nestjs/common';
-import { ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import type { IUserService } from './interface/user.service.interface';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
@@ -13,10 +12,6 @@ export class UserController {
     @Inject('IUserService') private readonly userService: IUserService,
   ) {}
 
-  @ApiOperation({
-    summary: `get user profile Role ${Object.values(UserRole).join(', ')}`,
-  })
-  @ApiBearerAuth('JWT-auth')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.USER, UserRole.ADMIN)
   @Get('')

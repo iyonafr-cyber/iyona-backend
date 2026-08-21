@@ -10,7 +10,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Types } from 'mongoose';
 import { AuthGuard } from '../../auth/guards/auth.guard';
@@ -25,8 +24,6 @@ import { AiProviderKeysService } from '../ai-provider-keys.service';
 import { CreateProviderKeyDto } from '../dto/create-provider-key.dto';
 import { UpdateProviderKeyDto } from '../dto/update-provider-key.dto';
 
-@ApiTags('admin-ai-provider-keys')
-@ApiBearerAuth('JWT-auth')
 @Controller('admin/ai-provider-keys')
 @UseGuards(AuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
@@ -37,14 +34,12 @@ export class AdminAiProviderKeysController {
   ) {}
 
   @Get()
-  @ApiOperation({ summary: 'List AI provider keys (masked)' })
   async list() {
     const data = await this.keys.listAll();
     return { data };
   }
 
   @Post()
-  @ApiOperation({ summary: 'Create provider key (encrypted at rest)' })
   async create(@Body() dto: CreateProviderKeyDto, @Req() req: AdminRequest) {
     const actor = AuditLogService.actorFromRequest(req);
     const createdBy = Types.ObjectId.isValid(actor.actorId)
@@ -68,7 +63,6 @@ export class AdminAiProviderKeysController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update provider key metadata or rotate secret' })
   async patch(
     @Param('id') id: string,
     @Body() dto: UpdateProviderKeyDto,
@@ -103,7 +97,6 @@ export class AdminAiProviderKeysController {
 
   @Delete(':id')
   @HttpCode(200)
-  @ApiOperation({ summary: 'Delete provider key' })
   async remove(@Param('id') id: string, @Req() req: AdminRequest) {
     const actor = AuditLogService.actorFromRequest(req);
     const prev = await this.keys.findPublicById(id);
@@ -127,7 +120,6 @@ export class AdminAiProviderKeysController {
   @Post(':id/test')
   @HttpCode(200)
   @Throttle({ medium: { limit: 30, ttl: 60_000 } })
-  @ApiOperation({ summary: 'Test provider key against provider API' })
   async test(@Param('id') id: string, @Req() req: AdminRequest) {
     const actor = AuditLogService.actorFromRequest(req);
     const result = await this.keys.testKey(id);

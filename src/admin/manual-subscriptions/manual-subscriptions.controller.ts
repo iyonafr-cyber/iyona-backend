@@ -10,12 +10,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiProperty,
-  ApiTags,
-} from '@nestjs/swagger';
-import {
   IsBoolean,
   IsIn,
   IsInt,
@@ -44,82 +38,39 @@ const GRANTABLE_PLAN_IDS = PLANS.map((p) => p.id).filter(
 const ALLOWED_CURRENCIES = ['USD', 'EUR', 'GBP', 'PKR', 'CAD', 'AUD'] as const;
 
 export class GrantManualSubDto {
-  @ApiProperty({
-    enum: GRANTABLE_PLAN_IDS as unknown as string[],
-    description: 'Plan to assign. Must not be "free".',
-  })
   @IsIn(GRANTABLE_PLAN_IDS as unknown as string[])
   planId: Exclude<PlanId, 'free'>;
 
-  @ApiProperty({
-    example: 3,
-    minimum: 1,
-    maximum: 36,
-    description:
-      'Number of months the manual subscription should remain active.',
-  })
   @IsInt()
   @Min(1)
   @Max(36)
   months: number;
 
-  @ApiProperty({
-    example: 4900,
-    minimum: 0,
-    description:
-      'Amount the user paid, in minor units (cents). Stored for tracking only.',
-  })
   @IsInt()
   @Min(0)
   amountPaidCents: number;
 
-  @ApiProperty({
-    required: false,
-    enum: ALLOWED_CURRENCIES as unknown as string[],
-    default: 'USD',
-    description: 'ISO-4217 currency code for amountPaidCents.',
-  })
   @IsOptional()
   @IsIn(ALLOWED_CURRENCIES as unknown as string[])
   currency?: string;
 
-  @ApiProperty({
-    required: false,
-    maxLength: 500,
-    description:
-      'Free-form note for record-keeping (e.g. "Cash payment from John on 2026-04-18").',
-  })
   @IsOptional()
   @IsString()
   @MaxLength(500)
   note?: string;
 
-  @ApiProperty({
-    required: false,
-    default: false,
-    description:
-      'If the user has an active Stripe subscription, set this to true to acknowledge ' +
-      'the double-billing risk and proceed anyway. The Stripe sub is NOT cancelled by this flag.',
-  })
   @IsOptional()
   @IsBoolean()
   overrideStripe?: boolean;
 }
 
 export class RevokeManualSubDto {
-  @ApiProperty({
-    required: false,
-    maxLength: 500,
-    description: 'Optional reason for the audit trail.',
-  })
   @IsOptional()
   @IsString()
   @MaxLength(500)
   reason?: string;
 }
 
-@ApiTags('admin-manual-subscriptions')
-@ApiBearerAuth('JWT-auth')
 @Controller('admin/users/:id/manual-subscription')
 @UseGuards(AuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
@@ -131,9 +82,6 @@ export class ManualSubscriptionsController {
 
   @Post()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Grant a manual (admin-issued) subscription for N months',
-  })
   async grant(
     @Param('id') id: string,
     @Body() dto: GrantManualSubDto,
@@ -173,10 +121,6 @@ export class ManualSubscriptionsController {
 
   @Delete()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary:
-      'Revoke an active manual subscription immediately (drops user to free)',
-  })
   async revoke(
     @Param('id') id: string,
     @Body() dto: RevokeManualSubDto,

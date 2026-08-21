@@ -4,9 +4,6 @@ declare namespace NodeJS {
     APPNAME: string | undefined;
     // PORT
     PORT: number | undefined;
-    // swagger
-    SWAGGER_USERNAME: string | undefined;
-    SWAGGER_PASSWORD: string | undefined;
     // mongoose
     MONGO_URL: string | undefined;
     // crypto js

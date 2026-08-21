@@ -2,11 +2,11 @@
  * E6 — click-to-edit source annotator.
  *
  * Walks every `.jsx`, `.tsx`, `.js`, `.ts` file in the deploy file
- * map and adds a `data-jarvis-src="<file>:<line>:<col>"` attribute to
+ * map and adds a `data-iyona-src="<file>:<line>:<col>"` attribute to
  * the first lowercase JSX opening tag on each line. The preview-bridge
  * (running inside the deployed iframe) reads that attribute when the
  * user clicks an element with pick-mode enabled and posts the source
- * location back to the Jarvis workspace, which pre-fills the chat
+ * location back to the Iyona workspace, which pre-fills the chat
  * composer with a context-aware prompt.
  *
  * Why regex and not a full Babel pass?
@@ -21,7 +21,7 @@
  *     to "no pick target" — never breaks the deployed app.
  *
  * The injector is idempotent: if a tag already carries a
- * `data-jarvis-src` attribute we leave it alone.
+ * `data-iyona-src` attribute we leave it alone.
  */
 
 // Match lowercase JSX opening tags but NOT TypeScript generics.
@@ -29,7 +29,7 @@
 // closing paren, or closing bracket — those are generic positions like
 // `z.infer<typeof ...>`, `Array<string>`, `foo<bar>`, `(x)<y>`.
 const JSX_TAG_RE =
-  /(?<![.\w)\]])<([a-z][a-z0-9]*)((?:\s+(?!data-jarvis-src=)[a-zA-Z_:][^=>\s]*(?:=(?:"[^"]*"|'[^']*'|\{[^}]*\}))?)*)\s*(\/?)>/g;
+  /(?<![.\w)\]])<([a-z][a-z0-9]*)((?:\s+(?!data-iyona-src=)[a-zA-Z_:][^=>\s]*(?:=(?:"[^"]*"|'[^']*'|\{[^}]*\}))?)*)\s*(\/?)>/g;
 
 const ANNOTATABLE_EXT = new Set(['.jsx', '.tsx']);
 
@@ -71,7 +71,7 @@ function annotateFileContents(filePath: string, contents: string): string {
       const [full, tag, attrs, selfClose] = match;
       const start = match.index;
       const col = start + 1;
-      const attr = ` data-jarvis-src="${safePath}:${i + 1}:${col}"`;
+      const attr = ` data-iyona-src="${safePath}:${i + 1}:${col}"`;
       result += line.slice(cursor, start);
       result += `<${tag}${attrs}${attr}${selfClose ? ' /' : ''}>`;
       cursor = start + full.length;

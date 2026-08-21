@@ -76,12 +76,7 @@ export class AiProviderHealthService {
    * failure mode than a platform-wide outage traced to one bad model id.
    */
   isKeyFault(status: number | undefined, message: string): boolean {
-    if (
-      status === 401 ||
-      status === 403 ||
-      status === 429 ||
-      status === 402
-    ) {
+    if (status === 401 || status === 403 || status === 429 || status === 402) {
       return true;
     }
     // Anthropic reports an exhausted account balance as a *400*, not a 402:

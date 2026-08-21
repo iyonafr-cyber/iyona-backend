@@ -11,7 +11,6 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorator/roles.decorator';
@@ -27,8 +26,6 @@ import {
   UpdateCustomAgentDto,
 } from './dto/custom-agent.dto';
 
-@ApiTags('AI')
-@ApiBearerAuth('JWT-auth')
 @UseGuards(AuthGuard, RolesGuard)
 @Roles(UserRole.USER)
 @Controller('ai/agents')
@@ -38,10 +35,6 @@ export class AgentsController {
     private readonly customAgents: CustomAgentsService,
   ) {}
 
-  @ApiOperation({
-    summary:
-      'List slash-command AI agents available in chat (built-ins + your specialists)',
-  })
   @Get()
   @HttpCode(HttpStatus.OK)
   async list(
@@ -54,9 +47,6 @@ export class AgentsController {
     return { data: [...builtIns, ...custom] };
   }
 
-  @ApiOperation({
-    summary: 'Get one of your custom specialists (incl. instructions)',
-  })
   @Get('custom/:slug')
   @HttpCode(HttpStatus.OK)
   async detail(
@@ -68,7 +58,6 @@ export class AgentsController {
     return { data };
   }
 
-  @ApiOperation({ summary: 'Create a custom specialist' })
   @Post('custom')
   @HttpCode(HttpStatus.CREATED)
   async create(
@@ -79,7 +68,6 @@ export class AgentsController {
     return { data };
   }
 
-  @ApiOperation({ summary: 'Update one of your custom specialists' })
   @Patch('custom/:slug')
   @HttpCode(HttpStatus.OK)
   async update(
@@ -91,7 +79,6 @@ export class AgentsController {
     return { data };
   }
 
-  @ApiOperation({ summary: 'Delete one of your custom specialists' })
   @Delete('custom/:slug')
   @HttpCode(HttpStatus.OK)
   async remove(

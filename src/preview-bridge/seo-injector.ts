@@ -6,7 +6,7 @@
  * `index.html` with `<title>` + meta tags, and writes `robots.txt`
  * and `sitemap.xml` based on the project's persisted SEO config.
  *
- * Idempotent: replaces any existing Jarvis-managed SEO block so
+ * Idempotent: replaces any existing Iyona-managed SEO block so
  * toggling provider settings between deploys doesn't pile up stale
  * tags.
  */
@@ -26,8 +26,8 @@ export interface SeoInjectorOptions {
   };
 }
 
-const SEO_BLOCK_START = '<!-- jarvis:seo -->';
-const SEO_BLOCK_END = '<!-- /jarvis:seo -->';
+const SEO_BLOCK_START = '<!-- iyona:seo -->';
+const SEO_BLOCK_END = '<!-- /iyona:seo -->';
 
 function escapeAttr(v: string): string {
   return v
@@ -123,7 +123,7 @@ function buildSitemapXml(opts: SeoInjectorOptions): string {
 }
 
 /**
- * Patch `index.html` with the Jarvis SEO block (replacing any prior
+ * Patch `index.html` with the Iyona SEO block (replacing any prior
  * one) and write `robots.txt` + `sitemap.xml` into the file map.
  * Returns the (possibly modified) file map. Safe to call repeatedly.
  */

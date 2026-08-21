@@ -58,11 +58,7 @@ function rgbToHex(r: number, g: number, b: number): string {
   return (
     '#' +
     [r, g, b]
-      .map((v) =>
-        Math.max(0, Math.min(255, v))
-          .toString(16)
-          .padStart(2, '0'),
-      )
+      .map((v) => Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0'))
       .join('')
   );
 }
@@ -70,16 +66,16 @@ function rgbToHex(r: number, g: number, b: number): string {
 // ── Target lightness values per shade (empirical, matching Tailwind) ────
 
 const SHADE_LIGHTNESS: Record<string, number> = {
-  '50':  0.97,
+  '50': 0.97,
   '100': 0.94,
   '200': 0.86,
   '300': 0.76,
   '400': 0.64,
-  '500': 0.50,   // base
+  '500': 0.5, // base
   '600': 0.42,
   '700': 0.34,
   '800': 0.26,
-  '900': 0.20,
+  '900': 0.2,
   '950': 0.12,
 };
 
@@ -115,16 +111,23 @@ export function generatePalette(baseHex: string): Record<string, string> {
  * Convenience: generate all three kit palettes from a `RepoDesignSystem.colors`
  * object. Falls back to defaults from ui-kit.constants when a color is missing.
  */
-export function palettesFromDesignSystem(colors: {
-  primary?: string;
-  accent?: string;
-  background?: string;
-  foreground?: string;
-} | null | undefined): {
-  primary?: Record<string, string>;
-  secondary?: Record<string, string>;
-  accent?: Record<string, string>;
-} | undefined {
+export function palettesFromDesignSystem(
+  colors:
+    | {
+        primary?: string;
+        accent?: string;
+        background?: string;
+        foreground?: string;
+      }
+    | null
+    | undefined,
+):
+  | {
+      primary?: Record<string, string>;
+      secondary?: Record<string, string>;
+      accent?: Record<string, string>;
+    }
+  | undefined {
   if (!colors) return undefined;
 
   const out: {

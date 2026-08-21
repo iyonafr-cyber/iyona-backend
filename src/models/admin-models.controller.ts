@@ -11,12 +11,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiTags,
-  ApiProperty,
-} from '@nestjs/swagger';
-import {
   IsBoolean,
   IsIn,
   IsNumber,
@@ -34,66 +28,50 @@ import { Roles } from '../auth/decorator/roles.decorator';
 import { UserRole } from '../user/roles/roles.enum';
 
 export class UpdateModelDto {
-  @ApiProperty({ required: false })
   @IsOptional()
   @IsBoolean()
   enabled?: boolean;
 
-  @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   displayName?: string;
 
-  @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber()
   order?: number;
 
-  @ApiProperty({ required: false })
   @IsOptional()
   @IsBoolean()
   isDefault?: boolean;
 
-  @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber()
   @Min(0)
   inputPerMillion?: number;
 
-  @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber()
   @Min(0)
   outputPerMillion?: number;
 
-  @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber()
   @Min(1)
   maxOutputTokens?: number;
 
-  @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber()
   @Min(1)
   contextTokens?: number;
 
-  @ApiProperty({ required: false, enum: ['high', 'medium', 'low'] })
   @IsOptional()
   @IsIn(['high', 'medium', 'low'])
   tier?: 'high' | 'medium' | 'low';
 
-  @ApiProperty({
-    required: false,
-    enum: MODEL_CATEGORIES as unknown as string[],
-    description:
-      'Capability bucket. The user-facing /models picker only returns rows whose category is "coding".',
-  })
   @IsOptional()
   @IsIn(MODEL_CATEGORIES as unknown as string[])
   category?: ModelCategory;
 
-  @ApiProperty({ required: false })
   @IsOptional()
   @IsBoolean()
   codingOptimized?: boolean;
@@ -126,11 +104,9 @@ export interface RefreshSummary {
  * Admin-only CRUD + catalog-refresh endpoints. Locked behind
  * `AuthGuard` + `RolesGuard` + `@Roles(UserRole.ADMIN)`.
  */
-@ApiTags('admin-models')
 @Controller('admin/models')
 @UseGuards(AuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
-@ApiBearerAuth('JWT-auth')
 export class AdminModelsController {
   private readonly logger = new Logger(AdminModelsController.name);
 
@@ -140,13 +116,11 @@ export class AdminModelsController {
   ) {}
 
   @Get()
-  @ApiOperation({ summary: 'List all models (including disabled)' })
   list(): { data: ModelSnapshot[] } {
     return { data: this.catalog.list() };
   }
 
   @Patch(':modelId')
-  @ApiOperation({ summary: 'Update a model (admin only)' })
   async update(
     @Param('modelId') modelId: string,
     @Body() body: UpdateModelDto,
@@ -163,7 +137,6 @@ export class AdminModelsController {
    */
   @Post('refresh')
   @HttpCode(200)
-  @ApiOperation({ summary: 'Refresh catalog from provider APIs' })
   async refresh(): Promise<{ data: RefreshSummary }> {
     const { models: remote, respondedProviders } =
       await this.providers.fetchAll();

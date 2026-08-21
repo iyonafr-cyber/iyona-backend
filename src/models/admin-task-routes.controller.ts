@@ -9,12 +9,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiProperty,
-  ApiTags,
-} from '@nestjs/swagger';
-import {
   ArrayMaxSize,
   IsArray,
   IsBoolean,
@@ -40,36 +34,20 @@ import { Roles } from '../auth/decorator/roles.decorator';
 import { UserRole } from '../user/roles/roles.enum';
 
 export class UpdateTaskRouteDto {
-  @ApiProperty({
-    required: false,
-    nullable: true,
-    description: 'First-choice model id. Null/empty clears the route.',
-  })
   @IsOptional()
   @IsString()
   primaryModelId?: string | null;
 
-  @ApiProperty({
-    required: false,
-    type: [String],
-    description: 'Ordered secondary chain, tried after the primary.',
-  })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   @ArrayMaxSize(5)
   fallbackModelIds?: string[];
 
-  @ApiProperty({
-    required: false,
-    description:
-      'When true, this route also overrides the per-request model picker and the per-project default.',
-  })
   @IsOptional()
   @IsBoolean()
   enforce?: boolean;
 
-  @ApiProperty({ required: false })
   @IsOptional()
   @IsBoolean()
   enabled?: boolean;
@@ -111,11 +89,9 @@ export interface TaskRouteView extends TaskRouteSnapshot {
  * today, not just what was configured. Without that, a configured-but-dead
  * primary looks identical to a working one.
  */
-@ApiTags('admin-task-routes')
 @Controller('admin/task-routes')
 @UseGuards(AuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
-@ApiBearerAuth('JWT-auth')
 export class AdminTaskRoutesController {
   constructor(
     private readonly routes: TaskRouteService,
@@ -125,9 +101,6 @@ export class AdminTaskRoutesController {
   ) {}
 
   @Get()
-  @ApiOperation({
-    summary: 'List per-task routing config with live resolution',
-  })
   async list(): Promise<{ data: TaskRouteView[] }> {
     await this.providerRouter.ensureCache();
     const availability = this.providerRouter.getLastAvailabilitySync();
@@ -137,7 +110,6 @@ export class AdminTaskRoutesController {
   }
 
   @Patch(':task')
-  @ApiOperation({ summary: 'Update routing for one task' })
   async update(
     @Param('task') task: string,
     @Body() body: UpdateTaskRouteDto,

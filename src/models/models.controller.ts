@@ -1,10 +1,4 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiQuery,
-  ApiTags,
-} from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { AiProviderRouterService } from '../ai-provider-keys/ai-provider-router.service';
 import { ModelCatalogService, ModelSnapshot } from './models.service';
@@ -82,7 +76,6 @@ async function listPickableModels(
  * Exposes nothing sensitive: model ids and display names only, no pricing
  * and no key material. Rate-limited since it is open to the internet.
  */
-@ApiTags('models')
 @Controller('models')
 export class PublicModelsController {
   constructor(
@@ -92,9 +85,6 @@ export class PublicModelsController {
 
   @Get('public')
   @Throttle({ medium: { limit: 60, ttl: 60_000 } })
-  @ApiOperation({
-    summary: 'List enabled models (no auth) for the signed-out picker',
-  })
   async list(
     @Query('category') category?: string,
   ): Promise<{ data: PublicModelDto[] }> {
@@ -108,10 +98,8 @@ export class PublicModelsController {
   }
 }
 
-@ApiTags('models')
 @Controller('models')
 @UseGuards(AuthGuard)
-@ApiBearerAuth('JWT-auth')
 export class ModelsController {
   constructor(
     private readonly catalog: ModelCatalogService,
@@ -119,14 +107,6 @@ export class ModelsController {
   ) {}
 
   @Get()
-  @ApiOperation({ summary: 'List enabled models for the picker' })
-  @ApiQuery({
-    name: 'category',
-    required: false,
-    enum: MODEL_CATEGORIES as unknown as string[],
-    description:
-      'Capability bucket to filter on. Defaults to "coding" so non-coding models never surface in the user picker.',
-  })
   async list(
     @Query('category') category?: string,
   ): Promise<{ data: PublicModelDto[] }> {

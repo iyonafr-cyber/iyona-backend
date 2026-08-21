@@ -31,7 +31,7 @@ export interface SupabaseConnectionStatus {
   projectRef?: string;
   /** How schema changes reach this database. */
   migrationMode: SupabaseMigrationMode;
-  /** True when Jarvis can apply migrations without the owner doing anything. */
+  /** True when Iyona can apply migrations without the owner doing anything. */
   autoMigrations: boolean;
   /** True when the app-admin feature is available (needs the service role key). */
   canManageAppAdmin: boolean;
@@ -133,7 +133,7 @@ export class SupabaseConnectionService {
       dbUrlKind = parsedDbUrl.kind;
     } else {
       warnings.push(
-        'No database connection string provided — Jarvis will generate SQL for schema changes and you run it in the Supabase SQL editor.',
+        'No database connection string provided — Iyona will generate SQL for schema changes and you run it in the Supabase SQL editor.',
       );
     }
 
@@ -185,7 +185,7 @@ export class SupabaseConnectionService {
 
   /**
    * Clear stored credentials. Deliberately does NOT touch the owner's Supabase
-   * project — disconnecting is a Jarvis-side action, and deleting someone
+   * project — disconnecting is a Iyona-side action, and deleting someone
    * else's database because they unlinked it would be indefensible.
    */
   async disconnect(

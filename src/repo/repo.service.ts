@@ -3,8 +3,8 @@ import { Octokit } from '@octokit/rest';
 import { DistributedLockService } from 'src/common/distributed-lock/distributed-lock.service';
 import type { LockOptions } from 'src/common/distributed-lock/distributed-lock.service';
 
-/** Result of creating a Jarvis-owned repo. */
-export interface JarvisRepoInfo {
+/** Result of creating an Iyona-owned repo. */
+export interface IyonaRepoInfo {
   owner: string;
   repo: string;
   defaultBranch: string;
@@ -858,23 +858,30 @@ export class RepoService {
   private readonly octokit: Octokit;
   /** GitHub org slug when using org-hosted repos; empty for PAT-under-user repos. */
   private readonly org: string;
-  /** PAT-first: `GITHUB_PAT` overrides `JARVIS_GITHUB_TOKEN` when both are set. */
+  /** PAT-first: `GITHUB_PAT` overrides `IYONA_GITHUB_TOKEN` / legacy `JARVIS_GITHUB_TOKEN`. */
   private readonly authToken: string;
   private readonly useOrgRepos: boolean;
   private readonly configured: boolean;
 
   constructor(private readonly lock: DistributedLockService) {
+    // Bucket B (env migration): read the new IYONA_* names first, fall back to
+    // the legacy JARVIS_* names so a deploy keeps working across the config
+    // update. GITHUB_PAT remains the documented first choice.
     this.authToken =
       process.env.GITHUB_PAT?.trim() ||
+      process.env.IYONA_GITHUB_TOKEN?.trim() ||
       process.env.JARVIS_GITHUB_TOKEN?.trim() ||
       '';
-    this.org = process.env.JARVIS_GITHUB_ORG?.trim() ?? '';
+    this.org =
+      process.env.IYONA_GITHUB_ORG?.trim() ||
+      process.env.JARVIS_GITHUB_ORG?.trim() ||
+      '';
     this.useOrgRepos = this.org.length > 0;
     this.configured = this.authToken.length > 0;
 
     if (!this.configured) {
       this.logger.warn(
-        'GITHUB_PAT or JARVIS_GITHUB_TOKEN is not set — GitHub repo operations will fail at runtime',
+        'GITHUB_PAT or IYONA_GITHUB_TOKEN (legacy JARVIS_GITHUB_TOKEN) is not set — GitHub repo operations will fail at runtime',
       );
     }
 
@@ -887,7 +894,7 @@ export class RepoService {
   private assertConfigured(): void {
     if (!this.configured) {
       throw new Error(
-        'RepoService is not configured: set GITHUB_PAT or JARVIS_GITHUB_TOKEN in the environment (set JARVIS_GITHUB_ORG only when creating repos under a GitHub org)',
+        'RepoService is not configured: set GITHUB_PAT or IYONA_GITHUB_TOKEN (legacy JARVIS_GITHUB_TOKEN) in the environment (set IYONA_GITHUB_ORG / legacy JARVIS_GITHUB_ORG only when creating repos under a GitHub org)',
       );
     }
   }
@@ -911,11 +918,11 @@ export class RepoService {
   // ── REPO LIFECYCLE ─────────────────────────────────────────────────────────
 
   /**
-   * Create a Jarvis-owned repo named `{slug}-{word}` (private, auto_init).
-   * When `JARVIS_GITHUB_ORG` is set: repo under that org. Otherwise: repo under
-   * the authenticated PAT user (`POST /user/repos`).
+   * Create an Iyona-owned repo named `{slug}-{word}` (private, auto_init).
+   * When `IYONA_GITHUB_ORG` (or legacy `JARVIS_GITHUB_ORG`) is set: repo under
+   * that org. Otherwise: repo under the authenticated PAT user (`POST /user/repos`).
    */
-  async createProjectRepo(projectName: string): Promise<JarvisRepoInfo> {
+  async createProjectRepo(projectName: string): Promise<IyonaRepoInfo> {
     this.assertConfigured();
     const base = slugify(projectName || 'project');
 
@@ -928,7 +935,7 @@ export class RepoService {
             name: repoName,
             private: true,
             auto_init: true,
-            description: `Jarvis-generated project: ${projectName}`,
+            description: `Iyona-generated project: ${projectName}`,
           });
 
           this.logger.log(`Created repo ${this.org}/${repoName}`);
@@ -944,7 +951,7 @@ export class RepoService {
           name: repoName,
           private: true,
           auto_init: true,
-          description: `Jarvis-generated project: ${projectName}`,
+          description: `Iyona-generated project: ${projectName}`,
         });
 
         const owner =
@@ -1106,7 +1113,7 @@ export class RepoService {
       tree: treeData.sha,
       parents: [parentSha],
       author: {
-        name: 'Jarvis AI',
+        name: 'Iyona AI',
         email: 'jarvis-ai@noreply.jarvis.build',
       },
     });
@@ -1313,7 +1320,7 @@ export class RepoService {
       message,
       tree: treeData.sha,
       parents: [parentSha],
-      author: { name: 'Jarvis AI', email: 'jarvis-ai@noreply.jarvis.build' },
+      author: { name: 'Iyona AI', email: 'jarvis-ai@noreply.jarvis.build' },
     });
 
     await this.octokit.git.updateRef({
@@ -1336,7 +1343,7 @@ export class RepoService {
     repo: string,
     head: string,
     base = 'main',
-    title = 'Jarvis AI fix',
+    title = 'Iyona AI fix',
     body = '',
   ): Promise<PrResult> {
     const { data } = await this.octokit.pulls.create({

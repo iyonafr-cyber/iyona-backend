@@ -169,7 +169,6 @@ export class ProjectsService {
     await this.accessService.requireViewer(userId, projectId);
   }
 
-
   /**
    * Create a new user project. In full-repo mode, initial code generation
    * happens when the user's first AI prompt is processed — the project doc
@@ -349,7 +348,7 @@ export class ProjectsService {
    * The generated app's admin panel has no signup — by design — so the account
    * has to be created out of band. We do it with the project's own
    * `service_role` key, which never leaves the backend. The password is passed
-   * to Supabase Auth and NOT persisted by Jarvis: only the email is stored, so
+   * to Supabase Auth and NOT persisted by Iyona: only the email is stored, so
    * the settings panel can show who the admin is.
    */
   async setAppAdmin(
@@ -745,6 +744,8 @@ export class ProjectsService {
         // Custom domain: detach from the Vercel project so it is freed for
         // reuse (and the sparse-unique `customDomain` Mongo row is released
         // when the project doc is deleted below).
+        // Bucket B (compat): must match the deploy-time name; existing projects
+        // are `jarvis-<id>` on Vercel. Keep the prefix (see vercel.service.ts).
         const vercelProjectName = `jarvis-${id}`;
         const customDomain = (proj as { customDomain?: string }).customDomain;
         if (customDomain) {
@@ -832,7 +833,6 @@ export class ProjectsService {
       }
     }
   }
-
 
   // ==================== WORKFLOW STATE MACHINE METHODS ====================
 
@@ -1535,6 +1535,4 @@ export class ProjectsService {
       throw logAndThrowError('error in isChatEnabled', error);
     }
   }
-
-
 }

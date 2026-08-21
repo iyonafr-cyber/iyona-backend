@@ -1,12 +1,10 @@
-import {
-  Injectable,
-  Logger,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
+import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { httpStatusFromError } from '../ai-provider-keys/provider-http-error.util';
-import { mapModelScopedProviderError, mapProviderCapacityError } from './upstream-ai-error';
+import {
+  mapModelScopedProviderError,
+  mapProviderCapacityError,
+} from './upstream-ai-error';
 import { CreditsService } from '../credits/credits.service';
 import { LlmMessage, LlmService } from '../credits/llm.service';
 import { PricingService, TokenUsage } from '../credits/pricing.service';
@@ -132,7 +130,7 @@ export interface AiCallContext {
   /** Persisted per-project fallback used when `modelId` is unset. */
   projectDefaultModelId?: string;
   /**
-   * Jarvis UI language hint from the client (`en` / `fr`). Used when text
+   * Iyona UI language hint from the client (`en` / `fr`). Used when text
    * language detection is uncertain.
    */
   uiLocale?: string;
@@ -1087,30 +1085,30 @@ export class AiService {
     // reserve/refund path must see the original throw, not our re-wrapped one.
     try {
       const result = await this.credits.withCredits(
-      {
-        userId: params.ctx.userId,
-        action: params.action,
-        reserveAmount: reserve,
-        requestId,
-        projectId: params.ctx.projectId,
-      },
-      async () => {
-        const res = await this.llm.chat({
-          task,
-          messages: params.messages,
-          temperature: params.temperature,
-          jsonMode: params.jsonMode,
-          maxOutputTokens: maxOut,
-          estimatedInputTokens: estimatedInput,
-          overrideModel: route.model,
-        });
-        return {
-          content: res.content,
-          usage: res.usage,
-          truncated: res.truncated ?? false,
-          finishReason: res.finishReason,
-        };
-      },
+        {
+          userId: params.ctx.userId,
+          action: params.action,
+          reserveAmount: reserve,
+          requestId,
+          projectId: params.ctx.projectId,
+        },
+        async () => {
+          const res = await this.llm.chat({
+            task,
+            messages: params.messages,
+            temperature: params.temperature,
+            jsonMode: params.jsonMode,
+            maxOutputTokens: maxOut,
+            estimatedInputTokens: estimatedInput,
+            overrideModel: route.model,
+          });
+          return {
+            content: res.content,
+            usage: res.usage,
+            truncated: res.truncated ?? false,
+            finishReason: res.finishReason,
+          };
+        },
       );
 
       return {
@@ -1174,7 +1172,7 @@ export class AiService {
 
     // 502, not 503: the frontend treats 503 as a platform-wide maintenance
     // signal and raises a site banner. An upstream AI account problem is not
-    // Jarvis being down, and must not look like it.
+    // Iyona being down, and must not look like it.
     if (isBilling || status === 402) {
       this.logger.error(
         `[AI] Provider account cannot be billed (model=${model}): ${message}`,
@@ -1182,7 +1180,7 @@ export class AiService {
       return new HttpException(
         {
           message:
-            'Jarvis AI is temporarily unavailable. Nothing was charged — ' +
+            'Iyona AI is temporarily unavailable. Nothing was charged — ' +
             'please try again shortly.',
           reason: 'provider_budget_exhausted',
         },
@@ -1191,7 +1189,7 @@ export class AiService {
     }
 
     // Gemini 503 "high demand" (and 429s). Never forward 503 — the SPA
-    // treats that as Jarvis being down.
+    // treats that as Iyona being down.
     const capacity = mapProviderCapacityError(status, message);
     if (capacity) return capacity;
 
@@ -1202,7 +1200,7 @@ export class AiService {
       return new HttpException(
         {
           message:
-            'Jarvis AI is temporarily unavailable. Nothing was charged — ' +
+            'Iyona AI is temporarily unavailable. Nothing was charged — ' +
             'our team has been notified.',
           reason: 'provider_unauthorized',
         },
@@ -1211,7 +1209,7 @@ export class AiService {
     }
 
     // Retired / unknown model id (the live gpt-5-codex 404). Not a key
-    // problem and not a Jarvis bug — the catalog is pointing at a model
+    // problem and not a Iyona bug — the catalog is pointing at a model
     // the provider no longer serves. 502 (not 500) so the client can
     // show "pick another model" instead of Internal server error.
     const modelGone = mapModelScopedProviderError(status, message, model);
@@ -1266,17 +1264,17 @@ export class AiService {
   // ──────────────────────────────────────────────────────────────
 
   private validationSystemPrompt(conversationLocale: string): string {
-    return `You are Jarvis, a friendly and conversational AI assistant that helps users build web applications.
+    return `You are Iyona, a friendly and conversational AI assistant that helps users build web applications.
 
 YOUR IDENTITY:
-- Your name is Jarvis. You build real, deployable web apps from a plain-English description.
-- Say your name the way a person does — once, in passing. NEVER introduce yourself with a job title: no "I'm Jarvis, your AI assistant for creating production-ready React web applications", no listing what you're powered by, no recital of your capabilities. Someone who says hello wants a hello back, not a product page.
+- Your name is Iyona. You build real, deployable web apps from a plain-English description.
+- Say your name the way a person does — once, in passing. NEVER introduce yourself with a job title: no "I'm Iyona, your AI assistant for creating production-ready React web applications", no listing what you're powered by, no recital of your capabilities. Someone who says hello wants a hello back, not a product page.
 
 ANSWER THE QUESTION THEY ASKED. When someone asks you something — what model you are, who built you, what you can do, how much it costs, whether you can do X — answer it directly, in your first sentence, THEN nudge toward building. Replying to a question with your introduction and the same list of ideas is the single worst thing this message can do: it reads as though nobody is home. If you genuinely cannot answer, say what you don't know rather than changing the subject.
 
 QUESTIONS ABOUT YOURSELF — answer plainly, never coyly:
-- "What model are you?" / "What are you running on?" — You are Jarvis, and Jarvis runs on whichever frontier model is selected in the model picker beside the message box (Claude, GPT and Gemini models are all available there); for some steps the best-suited model is chosen automatically. Say that in one sentence. Do not pretend not to know, do not refuse, and do not name a specific version you cannot verify.
-- "Who made you?" / "Are you ChatGPT?" — You are Jarvis, the assistant for this app. You are not a rebadged consumer chatbot, and you don't need to speculate about your own internals beyond the picker.
+- "What model are you?" / "What are you running on?" — You are Iyona, and Iyona runs on whichever frontier model is selected in the model picker beside the message box (Claude, GPT and Gemini models are all available there); for some steps the best-suited model is chosen automatically. Say that in one sentence. Do not pretend not to know, do not refuse, and do not name a specific version you cannot verify.
+- "Who made you?" / "Are you ChatGPT?" — You are Iyona, the assistant for this app. You are not a rebadged consumer chatbot, and you don't need to speculate about your own internals beyond the picker.
 - "What can you do?" — Answer with what someone gets, not a feature list: describe an app, and you get a real, working, deployable React app — pages, data, admin, the lot — not a mockup.
 
 CRITICAL RULES:
@@ -1410,7 +1408,7 @@ THEME QUESTION (must be the first question; the example below is the EXACT shape
     },
     {
       "label": "Auto",
-      "description": "Let Jarvis pick a palette that fits the app",
+      "description": "Let Iyona pick a palette that fits the app",
       "colors": null
     }
   ]
@@ -1588,7 +1586,7 @@ Only respond with valid JSON.`;
         },
         {
           label: 'Auto',
-          description: 'Let Jarvis pick a palette that fits the app.',
+          description: 'Let Iyona pick a palette that fits the app.',
           colors: null,
         },
       ],
@@ -1846,8 +1844,8 @@ Respond with ONLY valid JSON. No markdown code blocks. No extra text.`;
         '- When the request asks for backend, database, "logic", persistence, accounts, or auth, use the managed Supabase database — NOT mock data or localStorage for those entities.',
         '- Env vars are injected at build time: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY. Create a single client with createClient from "@supabase/supabase-js" in src/lib/supabase.ts and import it everywhere.',
         '- Use supabase.auth for sign-up / sign-in / session (replace the mock AuthContext with a real Supabase session context). Guard routes on the real session.',
-        '- ROLES & ADMIN ACCESS: a `public.profiles` table already exists — `id` (references auth.users), `email`, `role` (default `user`), plus a trigger that inserts a row on signup and an `is_admin()` SQL helper. After sign-in, read the current user\'s `profiles.role` and expose it on the session context.',
-        '- The ADMIN ACCOUNT IS CREATED BY THE APP OWNER outside the app (Jarvis → Project settings → Admin). So build a normal /login that admins use too, and NEVER build an admin signup, an admin-registration form, a "become admin" button, or seed admin credentials in code. There is no first-run admin setup screen.',
+        "- ROLES & ADMIN ACCESS: a `public.profiles` table already exists — `id` (references auth.users), `email`, `role` (default `user`), plus a trigger that inserts a row on signup and an `is_admin()` SQL helper. After sign-in, read the current user's `profiles.role` and expose it on the session context.",
+        '- The ADMIN ACCOUNT IS CREATED BY THE APP OWNER outside the app (Iyona → Project settings → Admin). So build a normal /login that admins use too, and NEVER build an admin signup, an admin-registration form, a "become admin" button, or seed admin credentials in code. There is no first-run admin setup screen.',
         '- Guard every /admin route on `role === "admin"` (not merely on being logged in), and redirect non-admins to the home page. Hide admin-only nav links from non-admins. For admin-only tables, write RLS policies against `public.is_admin()` rather than a bare `auth.uid() IS NOT NULL`.',
         '- Persist CRUD entities in Supabase tables (not localStorage). If you create or change tables, emit a __schema__.json file declaring the schema.',
         DB_SYNC_FOR_PLAN,

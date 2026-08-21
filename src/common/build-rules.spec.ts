@@ -26,7 +26,9 @@ describe('shared build rules', () => {
       ENTITY_PARITY_FOR_WORKER,
       ENTITY_PARITY_FOR_FIX,
     ]) {
-      expect(variant).toMatch(/create (form )?AND the edit form|create and edit forms/);
+      expect(variant).toMatch(
+        /create (form )?AND the edit form|create and edit forms/,
+      );
       expect(variant).toMatch(/marked `user`|user-supplied field/);
     }
   });
@@ -39,7 +41,11 @@ describe('shared build rules', () => {
   });
 
   it('names the split-brain symptom in every db-sync variant', () => {
-    for (const variant of [DB_SYNC_FOR_PLAN, DB_SYNC_FOR_WORKER, DB_SYNC_FOR_FIX]) {
+    for (const variant of [
+      DB_SYNC_FOR_PLAN,
+      DB_SYNC_FOR_WORKER,
+      DB_SYNC_FOR_FIX,
+    ]) {
       expect(variant).toMatch(/static array/);
     }
     expect(DB_SYNC_FOR_WORKER).toContain('__schema__.json');

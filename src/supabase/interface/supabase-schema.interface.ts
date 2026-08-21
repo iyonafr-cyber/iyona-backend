@@ -10,7 +10,7 @@
  *   - Diffable against lastAppliedSchema for evolution detection
  */
 
-export interface JarvisColumnDef {
+export interface IyonaColumnDef {
   /** Column name */
   name: string;
   /** Postgres type: text, int8, uuid, timestamptz, boolean, jsonb, etc. */
@@ -27,7 +27,7 @@ export interface JarvisColumnDef {
   references?: string;
 }
 
-export interface JarvisRlsPolicy {
+export interface IyonaRlsPolicy {
   /** Policy name (unique per table) */
   name: string;
   /** PERMISSIVE or RESTRICTIVE */
@@ -40,20 +40,20 @@ export interface JarvisRlsPolicy {
   withCheck?: string;
 }
 
-export interface JarvisTableDef {
+export interface IyonaTableDef {
   /** Table name (public schema assumed) */
   name: string;
   /** Column definitions */
-  columns: JarvisColumnDef[];
+  columns: IyonaColumnDef[];
   /** RLS policies. At least one required per table (enforced by schema service). */
-  policies: JarvisRlsPolicy[];
+  policies: IyonaRlsPolicy[];
 }
 
-export interface JarvisSchemaDeclaration {
+export interface IyonaSchemaDeclaration {
   /** Schema version — always 1 for now */
   version: 1;
   /** Tables to create/ensure exist */
-  tables: JarvisTableDef[];
+  tables: IyonaTableDef[];
   /**
    * Optional raw SQL to run AFTER table creation (e.g. triggers,
    * functions, storage buckets). Use sparingly — prefer declarative.

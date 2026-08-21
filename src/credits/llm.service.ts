@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import Anthropic from '@anthropic-ai/sdk';
-import OpenAI from 'openai';
+import Anthropic from '@anthropic-ai/sdk/index.js';
+import OpenAI from 'openai/index.js';
 import { httpStatusFromError } from '../ai-provider-keys/provider-http-error.util';
 import { openaiCompletionParams } from './openai-params';
 import {
@@ -287,11 +287,7 @@ export class LlmService {
         const response = await client.chat.completions.create({
           model: apiModel,
           messages: this.toOpenAIMessages(req.messages),
-          ...openaiCompletionParams(
-            apiModel,
-            maxOutputTokens,
-            req.temperature,
-          ),
+          ...openaiCompletionParams(apiModel, maxOutputTokens, req.temperature),
           ...(req.jsonMode ? { response_format: { type: 'json_object' } } : {}),
         });
         const content = response.choices[0]?.message?.content ?? '';

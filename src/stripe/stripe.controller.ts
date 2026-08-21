@@ -7,22 +7,16 @@ import {
   HttpStatus,
   ServiceUnavailableException,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '../auth/guards/auth.guard';
 // import { RolesGuard } from '../auth/guards/roles.guard';
 // import { Roles } from '../auth/decorator/roles.decorator';
 // import { UserRole } from '../user/roles/roles.enum';
 import { StripeSeedService } from './stripe-seed.service';
 
-@ApiTags('Stripe')
 @Controller('stripe')
 export class StripeController {
   constructor(private readonly stripeSeedService: StripeSeedService) {}
 
-  @ApiOperation({
-    summary:
-      'List Jarvis subscription packages (products and prices) from Stripe (public; no auth)',
-  })
   @Get('subscription-packages')
   async listSubscriptionPackages() {
     try {
@@ -33,11 +27,6 @@ export class StripeController {
     }
   }
 
-  @ApiOperation({
-    summary:
-      'Create or sync subscription products and prices on Stripe (idempotent; admin only)',
-  })
-  @ApiBearerAuth('JWT-auth')
   @UseGuards(AuthGuard)
   // @UseGuards(AuthGuard, RolesGuard)
   // @Roles(UserRole.ADMIN)

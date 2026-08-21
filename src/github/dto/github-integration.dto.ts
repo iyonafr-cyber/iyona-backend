@@ -1,28 +1,20 @@
 import { Exclude, Expose } from 'class-transformer';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-
 export class GitHubIntegrationDto {
-  @ApiProperty()
   @Expose()
   _id: string;
 
-  @ApiProperty()
   @Expose()
   userId: string;
 
-  @ApiProperty()
   @Expose()
   githubUsername: string;
 
-  @ApiPropertyOptional()
   @Expose()
   repositoryIds?: string[];
 
-  @ApiProperty()
   @Expose()
   isActive: boolean;
 
-  @ApiPropertyOptional()
   @Expose()
   metadata?: {
     avatarUrl?: string;
@@ -31,11 +23,9 @@ export class GitHubIntegrationDto {
     bio?: string;
   };
 
-  @ApiProperty()
   @Expose()
   createdAt: Date;
 
-  @ApiProperty()
   @Expose()
   updatedAt: Date;
 

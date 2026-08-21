@@ -7,7 +7,6 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Request } from 'express';
 import { AiService } from './ai.service';
@@ -41,8 +40,6 @@ function ctxFromRequest(req: Request) {
   };
 }
 
-@ApiTags('AI')
-@ApiBearerAuth('JWT-auth')
 @UseGuards(AuthGuard, RolesGuard, CreditsGuard)
 @Roles(UserRole.USER)
 @Controller('ai')
@@ -50,7 +47,6 @@ function ctxFromRequest(req: Request) {
 export class AiController {
   constructor(private readonly aiService: AiService) {}
 
-  @ApiOperation({ summary: 'Validate user input for project creation' })
   @CreditAction('validate')
   @Post('validate')
   @HttpCode(HttpStatus.OK)
@@ -68,7 +64,6 @@ export class AiController {
     return { data, meta };
   }
 
-  @ApiOperation({ summary: 'Generate questionnaire for project' })
   @CreditAction('questionnaire')
   @Post('questionnaire')
   @HttpCode(HttpStatus.OK)
@@ -89,7 +84,6 @@ export class AiController {
     return { data, meta };
   }
 
-  @ApiOperation({ summary: 'Generate execution plan from questionnaire' })
   @CreditAction('execution_plan')
   @Post('execution-plan')
   @HttpCode(HttpStatus.OK)
@@ -110,5 +104,4 @@ export class AiController {
     );
     return { data, meta };
   }
-
 }

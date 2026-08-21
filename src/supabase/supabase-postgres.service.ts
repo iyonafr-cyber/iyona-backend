@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Client } from 'pg';
+import { Client } from 'node_modules/@types/pg';
 import {
   explainConnectionError,
   parseSupabaseConnectionString,
@@ -13,7 +13,7 @@ import { redactConnectionString } from './sql-target';
  *
  * This is the BYO counterpart to the Management API SQL endpoint. It exists so
  * migrations, the RLS gate, and the profiles/admin bootstrap keep working on
- * projects that live in the OWNER's Supabase org, where Jarvis has no
+ * projects that live in the OWNER's Supabase org, where Iyona has no
  * Management API access at all.
  *
  * Connections are opened per call and closed in a `finally`. No pooling: DDL
@@ -55,7 +55,7 @@ export class SupabasePostgresService {
       ssl: { rejectUnauthorized: false },
       connectionTimeoutMillis: SupabasePostgresService.CONNECT_TIMEOUT_MS,
       statement_timeout: SupabasePostgresService.STATEMENT_TIMEOUT_MS,
-      application_name: 'jarvis-migrations',
+      application_name: 'iyona-migrations',
     });
 
     try {

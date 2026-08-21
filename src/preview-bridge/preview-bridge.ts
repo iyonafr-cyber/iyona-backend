@@ -1,41 +1,41 @@
 /**
- * Jarvis preview-bridge.
+ * Iyona preview-bridge.
  *
  * A tiny script we inject into every deployed user app. It runs in
  * the deployed page (inside the preview iframe) and provides a stable
- * `postMessage` protocol the Jarvis workspace UI uses for:
+ * `postMessage` protocol the Iyona workspace UI uses for:
  *
  *  - E3 runtime error capture (`window.onerror`, unhandled promise
- *    rejections, console.error mirroring → "Send to Jarvis" pill).
+ *    rejections, console.error mirroring → "Send to Iyona" pill).
  *  - E6 click-to-edit (parent toggles `pickMode`; bridge intercepts
- *    clicks, finds the nearest `data-jarvis-src` attribute, and
+ *    clicks, finds the nearest `data-iyona-src` attribute, and
  *    posts back the source location so the chat can pre-fill).
  *  - E13 analytics auto-injection (the bridge exposes a simple
- *    `window.jarvisTrack(event, props)` and forwards events to the
+ *    `window.iyonaTrack(event, props)` and forwards events to the
  *    configured provider — Plausible / PostHog — once the parent
  *    sends a `setAnalytics` config message).
  *  - SPA navigation events so the workspace can keep its URL bar in
  *    sync with the iframe without polling.
  *
  * The bridge is intentionally framework-agnostic and dependency-free
- * so it works for the React/Vue/vanilla apps Jarvis can generate.
+ * so it works for the React/Vue/vanilla apps Iyona can generate.
  *
  * Wire format (iframe → parent):
- *   { type: 'jarvis:ready' }
- *   { type: 'jarvis:error',  error:   { message, stack, source, line, col, kind, ts } }
- *   { type: 'jarvis:console', level, args, ts }
- *   { type: 'jarvis:nav',     from,  to,    ts }
- *   { type: 'jarvis:click',   path,  label, ts }   // pick mode only
- *   { type: 'jarvis:track',   event, props, ts }
+ *   { type: 'iyona:ready' }
+ *   { type: 'iyona:error',  error:   { message, stack, source, line, col, kind, ts } }
+ *   { type: 'iyona:console', level, args, ts }
+ *   { type: 'iyona:nav',     from,  to,    ts }
+ *   { type: 'iyona:click',   path,  label, ts }   // pick mode only
+ *   { type: 'iyona:track',   event, props, ts }
  *
  * Wire format (parent → iframe):
- *   { type: 'jarvis:setPickMode',  enabled: boolean }
- *   { type: 'jarvis:setAnalytics', provider: 'plausible'|'posthog'|'none', key?: string, host?: string }
- *   { type: 'jarvis:reload' }
+ *   { type: 'iyona:setPickMode',  enabled: boolean }
+ *   { type: 'iyona:setAnalytics', provider: 'plausible'|'posthog'|'none', key?: string, host?: string }
+ *   { type: 'iyona:reload' }
  */
 
 export const PREVIEW_BRIDGE_JS = `(function () {
-  if (window.__jarvisBridge) return;
+  if (window.__iyonaBridge) return;
 
   // We send to '*' because the preview is on a *.jarvis.site domain
   // but the workspace shell can be on dev.jarvis.site / app.jarvis.site
@@ -77,7 +77,7 @@ export const PREVIEW_BRIDGE_JS = `(function () {
   // ---------------- Error capture ----------------
   window.addEventListener('error', function (event) {
     post({
-      type: 'jarvis:error',
+      type: 'iyona:error',
       error: {
         kind: 'runtime',
         message: event.message,
@@ -93,7 +93,7 @@ export const PREVIEW_BRIDGE_JS = `(function () {
   window.addEventListener('unhandledrejection', function (event) {
     var reason = event.reason;
     post({
-      type: 'jarvis:error',
+      type: 'iyona:error',
       error: {
         kind: 'unhandledrejection',
         message: reason && reason.message ? String(reason.message) : String(reason),
@@ -110,7 +110,7 @@ export const PREVIEW_BRIDGE_JS = `(function () {
     console[level] = function () {
       try {
         post({
-          type: 'jarvis:console',
+          type: 'iyona:console',
           level: level,
           args: Array.prototype.slice.call(arguments).map(safeSerialize),
           ts: Date.now()
@@ -125,7 +125,7 @@ export const PREVIEW_BRIDGE_JS = `(function () {
     var from = lastUrl;
     if (from === to) return;
     lastUrl = to;
-    post({ type: 'jarvis:nav', from: from, to: to, ts: Date.now() });
+    post({ type: 'iyona:nav', from: from, to: to, ts: Date.now() });
   }
   ['pushState', 'replaceState'].forEach(function (m) {
     var orig = history[m];
@@ -140,12 +140,12 @@ export const PREVIEW_BRIDGE_JS = `(function () {
   });
 
   // ---------------- Pick mode (E6) ----------------
-  function findJarvisSource(el) {
+  function findIyonaSource(el) {
     while (el && el !== document.body) {
-      if (el.hasAttribute && el.hasAttribute('data-jarvis-src')) {
+      if (el.hasAttribute && el.hasAttribute('data-iyona-src')) {
         return {
-          path: el.getAttribute('data-jarvis-src'),
-          label: el.getAttribute('data-jarvis-label') ||
+          path: el.getAttribute('data-iyona-src'),
+          label: el.getAttribute('data-iyona-label') ||
                  (el.tagName ? el.tagName.toLowerCase() : 'element')
         };
       }
@@ -156,12 +156,12 @@ export const PREVIEW_BRIDGE_JS = `(function () {
 
   document.addEventListener('click', function (e) {
     if (!pickMode) return;
-    var hit = findJarvisSource(e.target);
+    var hit = findIyonaSource(e.target);
     if (!hit) return;
     e.preventDefault();
     e.stopPropagation();
     post({
-      type: 'jarvis:click',
+      type: 'iyona:click',
       path: hit.path,
       label: hit.label,
       ts: Date.now()
@@ -171,8 +171,8 @@ export const PREVIEW_BRIDGE_JS = `(function () {
   // ---------------- Analytics ----------------
   var analytics = { provider: 'none' };
 
-  window.jarvisTrack = function (event, props) {
-    var payload = { type: 'jarvis:track', event: event, props: props || {}, ts: Date.now() };
+  window.iyonaTrack = function (event, props) {
+    var payload = { type: 'iyona:track', event: event, props: props || {}, ts: Date.now() };
     post(payload);
 
     if (analytics.provider === 'plausible' && window.plausible) {
@@ -259,34 +259,34 @@ export const PREVIEW_BRIDGE_JS = `(function () {
   window.addEventListener('message', function (e) {
     var data = e.data;
     if (!data || typeof data !== 'object') return;
-    if (data.type === 'jarvis:setPickMode') {
+    if (data.type === 'iyona:setPickMode') {
       pickMode = !!data.enabled;
       document.documentElement.style.cursor = pickMode ? 'crosshair' : '';
-    } else if (data.type === 'jarvis:setAnalytics') {
+    } else if (data.type === 'iyona:setAnalytics') {
       setupAnalytics({
         provider: data.provider || 'none',
         key: data.key,
         host: data.host
       });
-    } else if (data.type === 'jarvis:reload') {
+    } else if (data.type === 'iyona:reload') {
       location.reload();
     }
   });
 
   // Auto-init analytics from a window global the deploy pipeline can
   // inject (E13). For visitors viewing the deployed app standalone
-  // (no Jarvis workspace parent), this is the only way analytics ever
+  // (no Iyona workspace parent), this is the only way analytics ever
   // gets configured. The workspace can still override at runtime via
-  // \`jarvis:setAnalytics\`.
+  // \`iyona:setAnalytics\`.
   try {
-    var preset = window.__JARVIS_ANALYTICS__;
+    var preset = window.__IYONA_ANALYTICS__;
     if (preset && typeof preset === 'object' && preset.provider && preset.provider !== 'none') {
       setupAnalytics(preset);
     }
   } catch (e) { /* never break the app */ }
 
-  window.__jarvisBridge = { version: 1 };
-  post({ type: 'jarvis:ready', ts: Date.now() });
+  window.__iyonaBridge = { version: 1 };
+  post({ type: 'iyona:ready', ts: Date.now() });
 })();
 `;
 
@@ -296,7 +296,7 @@ export const PREVIEW_BRIDGE_JS = `(function () {
  * Vercel so we never have to ask the generator (which is the LLM) to
  * remember to include it.
  *
- * - Writes the bridge to `public/__jarvis-bridge.js` (Vite copies the
+ * - Writes the bridge to `public/__iyona-bridge.js` (Vite copies the
  *   `public/` directory into the build output verbatim).
  * - Patches `index.html` to add a `<script>` tag pointing at the
  *   bundled bridge if one isn't already present.
@@ -306,9 +306,9 @@ export const PREVIEW_BRIDGE_JS = `(function () {
 export interface InjectPreviewBridgeOptions {
   /**
    * E13 — analytics provider config baked into the deployed `index.html`
-   * via a `window.__JARVIS_ANALYTICS__` global. The bridge auto-initializes
+   * via a `window.__IYONA_ANALYTICS__` global. The bridge auto-initializes
    * from this on boot so analytics works for visitors who load the
-   * deployed app outside the Jarvis workspace.
+   * deployed app outside the Iyona workspace.
    */
   analytics?: {
     provider: 'plausible' | 'posthog';
@@ -325,8 +325,8 @@ export function injectPreviewBridge(
 
   // 1) Write the bridge into `public/`. Vite emits everything in
   //    `public/` to the build root, so the script lives at
-  //    `<previewUrl>/__jarvis-bridge.js`.
-  const bridgePath = 'public/__jarvis-bridge.js';
+  //    `<previewUrl>/__iyona-bridge.js`.
+  const bridgePath = 'public/__iyona-bridge.js';
   if (!updated[bridgePath] && !updated[`/${bridgePath}`]) {
     updated[bridgePath] = PREVIEW_BRIDGE_JS;
   }
@@ -334,7 +334,7 @@ export function injectPreviewBridge(
   // Build the analytics preset script tag (E13). Emitted BEFORE the
   // bridge script so the bridge can pick it up on boot.
   const analyticsTag = options.analytics
-    ? `\n    <script>window.__JARVIS_ANALYTICS__=${JSON.stringify({
+    ? `\n    <script>window.__IYONA_ANALYTICS__=${JSON.stringify({
         provider: options.analytics.provider,
         key: options.analytics.key ?? '',
         host: options.analytics.host ?? '',
@@ -356,17 +356,17 @@ export function injectPreviewBridge(
     // Replace any prior analytics preset so we don't ship stale keys
     // when the user toggles providers.
     html = html.replace(
-      /<script>\s*window\.__JARVIS_ANALYTICS__\s*=[^<]*<\/script>/,
+      /<script>\s*window\.__IYONA_ANALYTICS__\s*=[^<]*<\/script>/,
       '',
     );
 
-    if (!html.includes('__jarvis-bridge.js')) {
-      const tag = `${analyticsTag}\n    <script src="/__jarvis-bridge.js"></script>\n  `;
+    if (!html.includes('__iyona-bridge.js')) {
+      const tag = `${analyticsTag}\n    <script src="/__iyona-bridge.js"></script>\n  `;
       html = html.includes('</head>')
         ? html.replace('</head>', `${tag}</head>`)
         : html.includes('</body>')
           ? html.replace('</body>', `${tag}</body>`)
-          : `${html}\n<script src="/__jarvis-bridge.js"></script>\n`;
+          : `${html}\n<script src="/__iyona-bridge.js"></script>\n`;
     } else if (analyticsTag) {
       html = html.includes('</head>')
         ? html.replace('</head>', `${analyticsTag}\n  </head>`)

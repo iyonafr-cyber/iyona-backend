@@ -7,7 +7,6 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
@@ -28,15 +27,12 @@ class AddCustomDomainDto {
   domain: string;
 }
 
-@ApiTags('Custom Domain')
-@ApiBearerAuth('JWT-auth')
 @UseGuards(AuthGuard, RolesGuard)
 @Roles(UserRole.USER)
 @Controller('projects')
 export class CustomDomainController {
   constructor(private readonly customDomain: CustomDomainService) {}
 
-  @ApiOperation({ summary: 'Get custom domain status for a project' })
   @Get(':id/custom-domain/status')
   async status(
     @Param('id') id: string,
@@ -46,7 +42,6 @@ export class CustomDomainController {
     return { data: status };
   }
 
-  @ApiOperation({ summary: 'Attach a custom domain to a project' })
   @Post(':id/custom-domain')
   async add(
     @Param('id') id: string,
@@ -61,7 +56,6 @@ export class CustomDomainController {
     return { data: status };
   }
 
-  @ApiOperation({ summary: 'Remove the custom domain from a project' })
   @Delete(':id/custom-domain')
   async remove(
     @Param('id') id: string,
@@ -71,7 +65,6 @@ export class CustomDomainController {
     return { message: 'Custom domain removed' };
   }
 
-  @ApiOperation({ summary: 'Re-verify the custom domain via Vercel' })
   @Post(':id/custom-domain/verify')
   async verify(
     @Param('id') id: string,

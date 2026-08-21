@@ -234,7 +234,7 @@ export class AdminUsersService {
     }
 
     // Revoking verification / suspending / deleting wipes active sessions
-    // so the user is kicked out of jarvis-front immediately.
+    // so the user is kicked out of iyona-front immediately.
     const shouldWipeSessions =
       update.isDeleted === true ||
       update.isSuspended === true ||
@@ -315,13 +315,13 @@ export class AdminUsersService {
     const url = `${baseUrl}/verify-email?token=${encodeURIComponent(verificationToken)}&email=${encodeURIComponent(user.email)}`;
     await this.emailService.send({
       to: user.email,
-      subject: 'Verify your Jarvis email',
+      subject: 'Verify your Iyona email',
       html: `
         <p>Hi,</p>
-        <p>Your Jarvis administrator asked us to re-send your verification link.</p>
+        <p>Your Iyona administrator asked us to re-send your verification link.</p>
         <p><a href="${url}">Click here to verify your email address</a>.</p>
       `,
-      text: `Verify your Jarvis email: ${url}`,
+      text: `Verify your Iyona email: ${url}`,
     });
 
     await this.audit.log(actor, {

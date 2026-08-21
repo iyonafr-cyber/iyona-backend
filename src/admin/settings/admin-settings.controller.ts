@@ -1,5 +1,4 @@
 import { Body, Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   IsBoolean,
   IsOptional,
@@ -33,8 +32,6 @@ export class PatchAdminSettingsDto {
   cursorAgentModelId?: string | null;
 }
 
-@ApiTags('admin-settings')
-@ApiBearerAuth('JWT-auth')
 @Controller('admin/settings')
 @UseGuards(AuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
@@ -42,14 +39,12 @@ export class AdminSettingsController {
   constructor(private readonly settings: AdminSettingsService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Read admin settings singleton' })
   async get() {
     const data = await this.settings.get();
     return { data };
   }
 
   @Patch()
-  @ApiOperation({ summary: 'Update admin settings (audited)' })
   async patch(@Body() dto: PatchAdminSettingsDto, @Req() req: AdminRequest) {
     const actor = AuditLogService.actorFromRequest(req);
     const data = await this.settings.update(dto, actor);
@@ -58,17 +53,15 @@ export class AdminSettingsController {
 }
 
 /**
- * Public companion endpoint: jarvis-front hits this to know whether to show
+ * Public companion endpoint: iyona-front hits this to know whether to show
  * a maintenance banner. Kept on a separate controller (no guard) so it
  * stays reachable when admins want to ship a "we're down" message.
  */
-@ApiTags('system')
 @Controller('system')
 export class SystemStatusController {
   constructor(private readonly settings: AdminSettingsService) {}
 
   @Get('status')
-  @ApiOperation({ summary: 'Public maintenance status' })
   async status() {
     const data = await this.settings.publicStatus();
     return { data };
