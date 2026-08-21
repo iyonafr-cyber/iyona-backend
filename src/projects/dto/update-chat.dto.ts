@@ -1,4 +1,3 @@
-import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 /**
@@ -6,32 +5,14 @@ import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
  * so callers can't reassign a chat to a project they don't own.
  */
 export class UpdateChatDto {
-  @ApiProperty({ type: String, required: false })
   @IsOptional()
   @IsString()
   message?: string;
 
-  @ApiProperty({
-    type: String,
-    enum: ['user', 'assistant'],
-    required: false,
-  })
   @IsOptional()
   @IsEnum(['user', 'assistant'])
   role?: string;
 
-  @ApiProperty({
-    type: String,
-    enum: [
-      'markdown',
-      'deployment',
-      'code-generation',
-      'questionnaire',
-      'execution-plan',
-      'patch-update',
-    ],
-    required: false,
-  })
   @IsOptional()
   @IsEnum([
     'markdown',
@@ -43,7 +24,6 @@ export class UpdateChatDto {
   ])
   messageType?: string;
 
-  @ApiProperty({ type: Object, required: false })
   @IsOptional()
   metadata?: Record<string, any>;
 }
@@ -54,7 +34,6 @@ export class UpdateChatDto {
  * message type of an existing turn.
  */
 export class EditChatDto {
-  @ApiProperty({ type: String, required: true })
   @IsString()
   @IsNotEmpty()
   message: string;
@@ -67,31 +46,13 @@ export class EditChatDto {
  * controller layers on `assertProjectOwner`.
  */
 export class CreateChatBodyDto {
-  @ApiProperty({ type: String, required: true })
   @IsString()
   message: string;
 
-  @ApiProperty({
-    type: String,
-    enum: ['user', 'assistant'],
-    required: false,
-  })
   @IsOptional()
   @IsEnum(['user', 'assistant'])
   role?: string;
 
-  @ApiProperty({
-    type: String,
-    enum: [
-      'markdown',
-      'deployment',
-      'code-generation',
-      'questionnaire',
-      'execution-plan',
-      'patch-update',
-    ],
-    required: false,
-  })
   @IsOptional()
   @IsEnum([
     'markdown',
@@ -103,7 +64,6 @@ export class CreateChatBodyDto {
   ])
   messageType?: string;
 
-  @ApiProperty({ type: Object, required: false })
   @IsOptional()
   metadata?: Record<string, any>;
 }

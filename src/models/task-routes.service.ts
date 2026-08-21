@@ -131,9 +131,9 @@ export class TaskRouteService implements OnModuleInit {
         patch.primaryModelId !== undefined
           ? patch.primaryModelId
           : (this.cache.get(task)?.primaryModelId ?? null);
-      $set.fallbackModelIds = Array.from(new Set(patch.fallbackModelIds)).filter(
-        (id) => id && id !== primary,
-      );
+      $set.fallbackModelIds = Array.from(
+        new Set(patch.fallbackModelIds),
+      ).filter((id) => id && id !== primary);
     }
     if (patch.enforce !== undefined) $set.enforce = patch.enforce;
     if (patch.enabled !== undefined) $set.enabled = patch.enabled;

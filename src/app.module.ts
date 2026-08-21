@@ -65,7 +65,7 @@ import { PreflightModule } from './preflight/preflight.module';
             'req.headers.authorization',
             'req.headers.cookie',
             'req.headers["x-api-key"]',
-            'req.headers["x-jarvis-api-key"]',
+            'req.headers["x-iyona-api-key"]',
             '*.password',
             '*.dbPassword',
             '*.dbPasswordEnc',

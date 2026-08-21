@@ -48,7 +48,13 @@ describe('lintPlanAgainstArchetype', () => {
     const res = lintPlanAgainstArchetype(thinBrief, arch, true);
     expect(res.ok).toBe(false);
     expect(res.missingPages.map((p) => p.key)).toEqual(
-      expect.arrayContaining(['cart', 'checkout', 'login', 'signup', 'account']),
+      expect.arrayContaining([
+        'cart',
+        'checkout',
+        'login',
+        'signup',
+        'account',
+      ]),
     );
     expect(res.missingAuth).toBe(true);
   });

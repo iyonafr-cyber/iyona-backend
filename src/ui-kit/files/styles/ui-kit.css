@@ -1,5 +1,5 @@
 /*
- * Jarvis UI Kit — Design Tokens
+ * Iyona UI Kit — Design Tokens
  * This @theme block is the single source of truth for colors, radius, and spacing.
  * The generation pipeline substitutes {{PRIMARY}}, {{SECONDARY}}, {{ACCENT}} at
  * build time with project-specific values (or falls back to the defaults below).

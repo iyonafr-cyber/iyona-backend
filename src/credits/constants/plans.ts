@@ -59,7 +59,7 @@ export const PLANS: PlanDefinition[] = [
     id: 'free',
     name: 'Free',
     description:
-      'Access all of Jarvis core features at no cost and see what it can do.',
+      'Access all of Iyona core features at no cost and see what it can do.',
     monthlyPriceCents: 0,
     yearlyTotalCents: 0,
     credits: 100,

@@ -71,7 +71,7 @@ export class ProjectSettingsService {
       const gh = project.jarvisGithub;
       if (!gh?.owner || !gh?.repo) {
         throw new BadRequestException(
-          'Project has no Jarvis GitHub repository yet.',
+          'Project has no Iyona GitHub repository yet.',
         );
       }
       const branch = gh.defaultBranch ?? 'main';
@@ -125,7 +125,7 @@ export class ProjectSettingsService {
       const gh = project.jarvisGithub;
       if (!gh?.owner || !gh?.repo) {
         throw new BadRequestException(
-          'Project has no Jarvis GitHub repository yet.',
+          'Project has no Iyona GitHub repository yet.',
         );
       }
       const branch = gh.defaultBranch ?? 'main';

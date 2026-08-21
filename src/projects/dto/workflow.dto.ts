@@ -1,4 +1,3 @@
-import { ApiProperty } from '@nestjs/swagger';
 import {
   ArrayMaxSize,
   ArrayNotEmpty,
@@ -17,11 +16,6 @@ import {
  * edge instead of failing deep inside `ProjectsService`.
  */
 export class CompleteCodeGenerationDto {
-  @ApiProperty({
-    type: [String],
-    description: 'Relative file paths produced during code generation',
-    example: ['src/App.jsx', 'src/components/Header.jsx'],
-  })
   @IsArray({ message: 'generatedFiles must be an array of strings' })
   @ArrayNotEmpty({ message: 'generatedFiles cannot be empty' })
   @ArrayMaxSize(2000, {
@@ -44,13 +38,11 @@ export class CompleteCodeGenerationDto {
  * and look like a URL.
  */
 export class CompleteDeploymentDto {
-  @ApiProperty({ type: String, example: 'dpl_abc123' })
   @IsString({ message: 'deploymentId must be a string' })
   @IsNotEmpty({ message: 'deploymentId is required' })
   @MaxLength(128)
   deploymentId: string;
 
-  @ApiProperty({ type: String, example: 'https://my-project.vercel.app' })
   @IsString({ message: 'previewUrl must be a string' })
   @IsUrl(
     { require_tld: false, require_protocol: true },
@@ -66,11 +58,6 @@ export class CompleteDeploymentDto {
  * "why" the project transitioned to `failed`.
  */
 export class FailStageDto {
-  @ApiProperty({
-    type: String,
-    required: false,
-    example: 'OpenAI returned 500',
-  })
   @IsOptional()
   @IsString({ message: 'errorMessage must be a string' })
   @MaxLength(2000)

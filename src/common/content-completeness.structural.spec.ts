@@ -336,7 +336,18 @@ describe('buildCompletenessScorecard', () => {
       ...MANDATORY,
       'src/App.tsx': pad(
         'import {Routes,Route} from "react-router";export default function App(){return <Routes>' +
-          ['/', '/shop', '/product', '/cart', '/checkout', '/login', '/signup', '/account', '/admin', '/about']
+          [
+            '/',
+            '/shop',
+            '/product',
+            '/cart',
+            '/checkout',
+            '/login',
+            '/signup',
+            '/account',
+            '/admin',
+            '/about',
+          ]
             .map((p) => `<Route path="${p}" element={<X/>}/>`)
             .join('') +
           '</Routes>}',
@@ -351,7 +362,10 @@ describe('buildCompletenessScorecard', () => {
         'export function H(){return <div><section>a</section><section>b</section><Card/>{list.map(x=><Card key={x}/>)}</div>}',
       ),
     };
-    const card = buildCompletenessScorecard(files, 'e-commerce store with admin');
+    const card = buildCompletenessScorecard(
+      files,
+      'e-commerce store with admin',
+    );
     // routesFound counts distinct path segments; "/" (home) has none, so 10
     // routes → 9 segments. A consistent, harmless telemetry undercount.
     expect(card.routesFound).toBeGreaterThanOrEqual(9);

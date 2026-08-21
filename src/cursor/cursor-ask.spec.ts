@@ -82,10 +82,14 @@ function mockFetch(routes: Routes): {
 }
 
 function newService(): CursorService {
-  return new CursorService({} as Model<Revision>, {} as RepoService, {
-    // No configured coding model → CursorService falls back to the env id.
-    get: () => Promise.resolve({ cursorAgentModelId: null }),
-  } as unknown as AdminSettingsService);
+  return new CursorService(
+    {} as Model<Revision>,
+    {} as RepoService,
+    {
+      // No configured coding model → CursorService falls back to the env id.
+      get: () => Promise.resolve({ cursorAgentModelId: null }),
+    } as unknown as AdminSettingsService,
+  );
 }
 
 describe('CursorService.askCodebaseQuestion', () => {

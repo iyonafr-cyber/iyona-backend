@@ -26,9 +26,7 @@ import { VercelService } from '../vercel/vercel.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { SupabaseSchemaService } from '../supabase/supabase-schema.service';
 import { resolveSqlTarget } from '../projects/supabase-sql-target';
-import {
-  extractSchemaDeclaration,
-} from '../common/schema-extractor';
+import { extractSchemaDeclaration } from '../common/schema-extractor';
 import type { IEncryptionService } from '../encryption/interface/encryption.interface.service';
 import { CreateRevisionDto } from './dto/create-revision.dto';
 import { RevisionDto } from './dto/revision.dto';
@@ -52,7 +50,7 @@ import { mergeProjectDeployBuildEnv } from '../common/project-build-env-merge';
 import {
   stripVercelProtectionBypass,
   withVercelProtectionBypass,
-  jarvisVercelPublicPreviewUrl,
+  iyonaVercelPublicPreviewUrl,
 } from '../vercel/vercel-deployment-url.util';
 import {
   pickFirstPreviewUrlRaw,
@@ -163,7 +161,7 @@ export class RevisionsService {
     // Decision 07 — where DDL goes depends on what the owner gave us. Managed
     // projects go through the Management API; BYO projects with a connection
     // string go straight to Postgres; BYO projects without one can't be
-    // migrated by Jarvis at all, so we hand the owner the SQL instead of
+    // migrated by Iyona at all, so we hand the owner the SQL instead of
     // failing the deploy.
     const resolved = resolveSqlTarget(
       sb,
@@ -292,7 +290,7 @@ export class RevisionsService {
   }
 
   /**
-   * Manual migration path (decision 07): the project has a database Jarvis
+   * Manual migration path (decision 07): the project has a database Iyona
    * cannot run DDL against, so render the schema changes as a SQL script and
    * park it on the project for the settings panel to show.
    *
@@ -326,7 +324,9 @@ export class RevisionsService {
       // Legacy migration files — concatenate in the same order applyMigrations
       // would have run them.
       const entries = Object.entries(files)
-        .filter(([path]) => /(^|\/)supabase\/migrations\/[^/]+\.sql$/i.test(path))
+        .filter(([path]) =>
+          /(^|\/)supabase\/migrations\/[^/]+\.sql$/i.test(path),
+        )
         .map(([path, body]) => ({ name: path.split('/').pop() ?? path, body }))
         .sort((a, b) => a.name.localeCompare(b.name));
       if (entries.length === 0) return;
@@ -471,7 +471,8 @@ export class RevisionsService {
     //   2. project.designSystemColors (persisted from a previous generation)
     // First source that has colors wins.
     const dsColors =
-      createRevisionDto.metadata?.designSystemColors ?? project.designSystemColors;
+      createRevisionDto.metadata?.designSystemColors ??
+      project.designSystemColors;
     const palettes = palettesFromDesignSystem(dsColors);
 
     // Persist on the project for future revisions (mutations) so they get the
@@ -554,7 +555,7 @@ export class RevisionsService {
 
     try {
       // ── Push generated tree to GitHub (canonical source) ──────────────────
-      // Create the Jarvis-owned repo on first revision; subsequent revisions
+      // Create the Iyona-owned repo on first revision; subsequent revisions
       // push new commits onto the same repo.
       if (!project.jarvisGithub) {
         const repoInfo = await this.repoService.createProjectRepo(
@@ -942,7 +943,8 @@ export class RevisionsService {
         .exec()
         .catch(() => undefined);
 
-      const shouldSkipCleanup = skipCursorCleanup === true && completenessReport.ok;
+      const shouldSkipCleanup =
+        skipCursorCleanup === true && completenessReport.ok;
       if (skipCursorCleanup === true && !completenessReport.ok) {
         this.logger.warn(
           `[DeployPipeline] project ${projectId}: cleanup was skipped by caller but ` +
@@ -1098,7 +1100,7 @@ export class RevisionsService {
           `https://${vercelDeployment.url}`,
         );
         const publicPreviewUrl = stripVercelProtectionBypass(
-          jarvisVercelPublicPreviewUrl(projectId),
+          iyonaVercelPublicPreviewUrl(projectId),
         );
 
         // Update deployment doc with real Vercel id
@@ -1507,7 +1509,9 @@ export class RevisionsService {
               {
                 $set: {
                   status: DeploymentStatus.READY,
-                  ...(status.url ? { deploymentUrl: `https://${status.url}` } : {}),
+                  ...(status.url
+                    ? { deploymentUrl: `https://${status.url}` }
+                    : {}),
                   readyAt: new Date(),
                 },
               },
@@ -1876,7 +1880,7 @@ export class RevisionsService {
       const targetAlias = `p-${projectId}.${aliasDomain}`;
 
       const publicVercelPreview = stripVercelProtectionBypass(
-        jarvisVercelPublicPreviewUrl(projectId),
+        iyonaVercelPublicPreviewUrl(projectId),
       );
 
       // Prefer stable project hostname on *.vercel.app (not the per-deployment URL).

@@ -4,7 +4,6 @@ import {
   HealthCheckService,
   MongooseHealthIndicator,
 } from '@nestjs/terminus';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -37,7 +36,6 @@ const PROCESS_STARTED_AT = new Date().toISOString();
  * Liveness/readiness probes for orchestrators (Kubernetes, ECS, Vercel) and
  * uptime monitors. Kept public on purpose so probes don't need credentials.
  */
-@ApiTags('Health')
 @Controller('health')
 @Public()
 @SkipThrottle()
@@ -48,14 +46,12 @@ export class HealthController {
   ) {}
 
   @Get()
-  @ApiOperation({ summary: 'Readiness probe (checks DB connectivity)' })
   @HealthCheck()
   check() {
     return this.health.check([() => this.mongo.pingCheck('mongodb')]);
   }
 
   @Get('live')
-  @ApiOperation({ summary: 'Liveness probe (does not touch dependencies)' })
   liveness() {
     return {
       status: 'ok',
@@ -65,10 +61,6 @@ export class HealthController {
   }
 
   @Get('version')
-  @ApiOperation({
-    summary:
-      'Build/version metadata. Use to confirm a deploy picked up the latest commit.',
-  })
   version() {
     // Commit SHA is injected at build/deploy time. Most providers expose a
     // standard env var, so we try them in order and fall back to a generic
@@ -88,7 +80,7 @@ export class HealthController {
       'unknown';
 
     return {
-      name: 'jarvis-backend',
+      name: 'iyona-backend',
       version: PKG_VERSION,
       commit,
       commitShort: commit === 'unknown' ? 'unknown' : commit.slice(0, 7),

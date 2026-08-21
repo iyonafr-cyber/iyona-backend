@@ -7,10 +7,7 @@ import {
 } from './entities/ai-task-route.entity';
 import { ModelCatalogService } from './models.service';
 import { TaskRouteService } from './task-routes.service';
-import {
-  ModelsController,
-  PublicModelsController,
-} from './models.controller';
+import { ModelsController, PublicModelsController } from './models.controller';
 import { AdminModelsController } from './admin-models.controller';
 import { AdminTaskRoutesController } from './admin-task-routes.controller';
 import { ProviderCatalogService } from './provider-catalog.service';

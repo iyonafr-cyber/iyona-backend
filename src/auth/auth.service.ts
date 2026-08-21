@@ -88,14 +88,14 @@ export class AuthService implements IAuthService {
       const url = `${this.frontendBaseUrl()}/reset-password?token=${encodeURIComponent(rawToken)}`;
       await this.emailService.send({
         to: normalized,
-        subject: 'Reset your Jarvis password',
+        subject: 'Reset your Iyona password',
         html: `
           <p>Hi,</p>
-          <p>We received a request to reset your Jarvis password.</p>
+          <p>We received a request to reset your Iyona password.</p>
           <p><a href="${url}">Click here to set a new password</a>. This link expires in 1 hour.</p>
           <p>If you didn't request this, you can safely ignore this email.</p>
         `,
-        text: `Reset your Jarvis password: ${url}\n(This link expires in 1 hour. Ignore this email if you didn't request it.)`,
+        text: `Reset your Iyona password: ${url}\n(This link expires in 1 hour. Ignore this email if you didn't request it.)`,
       });
     } catch (error) {
       // Never surface provider errors to the client.
@@ -152,12 +152,12 @@ export class AuthService implements IAuthService {
     const url = `${this.frontendBaseUrl()}/verify-email?token=${encodeURIComponent(verificationToken)}&email=${encodeURIComponent(normalized)}`;
     await this.emailService.send({
       to: normalized,
-      subject: 'Verify your Jarvis email',
+      subject: 'Verify your Iyona email',
       html: `
-        <p>Welcome to Jarvis!</p>
+        <p>Welcome to Iyona!</p>
         <p><a href="${url}">Click here to verify your email address</a>.</p>
       `,
-      text: `Verify your Jarvis email: ${url}`,
+      text: `Verify your Iyona email: ${url}`,
     });
   }
 

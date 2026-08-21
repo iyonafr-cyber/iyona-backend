@@ -11,7 +11,7 @@ import { ApiKey, ApiKeyDocument, ApiKeyScope } from './entities/api-key.entity';
 import { OrganizationsService } from '../organizations/organizations.service';
 
 const RAW_KEY_BYTES = 24; // → 32 chars after base64url
-const PEPPER = process.env.API_KEY_PEPPER || 'jarvis-default-pepper-CHANGEME';
+const PEPPER = process.env.API_KEY_PEPPER || 'iyona-default-pepper-CHANGEME';
 
 export interface CreatedApiKey {
   _id: string;

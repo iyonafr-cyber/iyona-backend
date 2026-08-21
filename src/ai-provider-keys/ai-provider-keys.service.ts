@@ -285,7 +285,8 @@ export class AiProviderKeysService {
     const provider = (row as AiProviderKey).provider;
     const supported = (row as AiProviderKey).supportedModels ?? [];
     const baseUrl =
-      (row as AiProviderKey).openaiBaseUrl?.trim() || 'https://api.openai.com/v1';
+      (row as AiProviderKey).openaiBaseUrl?.trim() ||
+      'https://api.openai.com/v1';
 
     const candidates = await this.probeModelCandidates(
       provider,

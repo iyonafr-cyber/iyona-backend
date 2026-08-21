@@ -26,7 +26,7 @@ export interface ISupabaseService {
   provisionProject(input: ProvisionProjectInput): Promise<ProvisionedProject>;
 
   /**
-   * Hard-delete a Supabase project. Used when a Jarvis project is
+   * Hard-delete a Supabase project. Used when a Iyona project is
    * permanently removed by the owner or by an admin takedown.
    */
   deleteProject(projectRef: string): Promise<void>;
@@ -66,7 +66,7 @@ export interface MigrationApplyResult {
 }
 
 export interface ProvisionProjectInput {
-  /** Human-readable project name; we use the Jarvis project id by default. */
+  /** Human-readable project name; we use the Iyona project id by default. */
   name: string;
   /** Region slug — defaults to `SUPABASE_DEFAULT_REGION` env var. */
   region?: string;

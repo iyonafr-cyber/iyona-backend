@@ -31,7 +31,7 @@ const MIN_CHARS_FOR_DETECTION = 40;
 const MIN_MARGIN_TO_NON_ENGLISH = 0.15;
 const MIN_MARGIN_TO_ENGLISH = 0.05;
 
-/** Map ISO 639-3 (franc) → BCP-47 primary subtag we support in Jarvis today. */
+/** Map ISO 639-3 (franc) → BCP-47 primary subtag we support in Iyona today. */
 const ISO639_3_TO_BCP47: Record<string, string> = {
   eng: 'en',
   fra: 'fr',

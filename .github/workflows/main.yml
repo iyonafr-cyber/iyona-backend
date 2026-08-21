@@ -24,10 +24,10 @@ jobs:
           DEPLOY_SHA: ${{ github.sha }}
           DEPLOY_REF: ${{ github.ref_name }}
           # Set repo secret EC2_HOST after stop/start if the public DNS/IP changed
-          # (e.g. ec2-1-2-3-4.eu-west-3.compute.amazonaws.com). Falls back to legacy host.
+          # (e.g. ec2-1-2-3-4.eu-west-3.compute.amazonaws.com). Falls back to the current Iyona host.
           EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
-          EC2_HOST="${EC2_HOST:-ec2-13-38-36-4.eu-west-3.compute.amazonaws.com}"
+          EC2_HOST="${EC2_HOST:-ec2-13-38-216-127.eu-west-3.compute.amazonaws.com}"
           echo "SSH target: ubuntu@${EC2_HOST}"
 
           # Forward only the variables we need into the remote shell. Note
@@ -47,12 +47,12 @@ jobs:
             echo "Branch:  $DEPLOY_REF"
             echo "================================"
 
-            cd ~/Jarvis-BE
+            cd ~/iyona-backend
 
             # ── 1. Snapshot the previous build for rollback ──────────────
             #
             # If the new build crashes on boot we restore this and restart,
-            # so dev.jarvis.site stays on the last-known-good revision
+            # so the API stays on the last-known-good revision
             # instead of going 502.
             PREV_SHA="$(git rev-parse HEAD)"
             rm -rf dist.prev
@@ -85,7 +85,7 @@ jobs:
             GIT_BRANCH="$DEPLOY_REF" \
             BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
               pm2 startOrReload ecosystem.config.cjs \
-                --only jarvis-dev \
+                --only iyona \
                 --update-env \
                 --env production
             pm2 save
@@ -109,7 +109,7 @@ jobs:
 
             if [ "$HEALTHY" -ne 1 ]; then
               echo "❌ health check failed — last 80 lines of stderr:"
-              pm2 logs jarvis-dev --err --lines 80 --nostream || true
+              pm2 logs iyona --err --lines 80 --nostream || true
 
               # ── 5. Roll back to the previous build ─────────────────────
               if [ -d dist.prev ] && [ -n "$PREV_SHA" ]; then
@@ -121,7 +121,7 @@ jobs:
                 GIT_BRANCH="$DEPLOY_REF" \
                 BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
                   pm2 startOrReload ecosystem.config.cjs \
-                    --only jarvis-dev \
+                    --only iyona \
                     --update-env \
                     --env production
                 pm2 save

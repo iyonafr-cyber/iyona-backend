@@ -12,7 +12,6 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { OrgBillingService } from '../organizations/org-billing.service';
-import { ApiExcludeController } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -31,7 +30,6 @@ import { PLAN_BY_ID, PlanId } from './constants/plans';
  * Raw request body is required for signature verification, so we skip
  * Nest's global JSON parser for this specific path — see `main.ts`.
  */
-@ApiExcludeController()
 @Controller('credits/stripe')
 export class StripeWebhookController {
   private readonly logger = new Logger(StripeWebhookController.name);

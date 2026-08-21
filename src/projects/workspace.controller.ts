@@ -15,12 +15,6 @@ import {
   HttpException,
 } from '@nestjs/common';
 import {
-  ApiOperation,
-  ApiTags,
-  ApiBearerAuth,
-  ApiResponse,
-} from '@nestjs/swagger';
-import {
   ArrayMaxSize,
   IsArray,
   IsNotEmpty,
@@ -141,8 +135,6 @@ class AskWorkspaceDto {
 
 // ── Controller ────────────────────────────────────────────────────────────────
 
-@ApiTags('Workspace')
-@ApiBearerAuth('JWT-auth')
 @UseGuards(AuthGuard, RolesGuard)
 @Roles(UserRole.USER)
 @Controller('projects/:projectId/workspace')
@@ -210,8 +202,6 @@ export class WorkspaceController {
   // ── GET /projects/:projectId/workspace/files ─────────────────────────────
 
   @Get('files')
-  @ApiOperation({ summary: 'Get all workspace files from GitHub main HEAD' })
-  @ApiResponse({ status: 200, description: '{ data: Record<path, content> }' })
   async getFiles(
     @Param('projectId') projectId: string,
     @CurrentUser() user: CurrentUserPayload,
@@ -229,10 +219,6 @@ export class WorkspaceController {
 
   @Put('files')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Commit file changes to GitHub main. Does NOT trigger a deploy.',
-  })
-  @ApiResponse({ status: 200, description: '{ data: { sha: string } }' })
   async saveFiles(
     @Param('projectId') projectId: string,
     @Body() dto: SaveFilesDto,
@@ -292,15 +278,6 @@ export class WorkspaceController {
   @HttpCode(HttpStatus.ACCEPTED)
   @UseGuards(CreditsGuard)
   @CreditAction('workspace_deploy')
-  @ApiOperation({
-    summary:
-      'Deploy the current GitHub main HEAD. Creates a new Revision and triggers the Cursor → Vercel pipeline.',
-  })
-  @ApiResponse({
-    status: 202,
-    description:
-      '{ data: { deploymentId, status } } — poll getDeploymentProgress',
-  })
   async deploy(
     @Param('projectId') projectId: string,
     @CurrentUser() user: CurrentUserPayload,
@@ -421,15 +398,6 @@ export class WorkspaceController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(CreditsGuard)
   @CreditAction('cursor_agent_question')
-  @ApiOperation({
-    summary:
-      "Ask a question about the project's code. Runs a read-only Cursor agent and returns its answer.",
-  })
-  @ApiResponse({
-    status: 200,
-    description:
-      '{ data: { status: answered|timed_out|failed, answer, agentId?, runId?, durationMs? } } — `answer` is always human-readable, including on failure',
-  })
   async ask(
     @Param('projectId') projectId: string,
     @CurrentUser() user: CurrentUserPayload,
@@ -501,15 +469,6 @@ export class WorkspaceController {
   }
 
   @Get('cursor-update/jobs/:jobId')
-  @ApiOperation({
-    summary:
-      'Poll a workspace code-update job (async pipeline started by POST cursor-update).',
-  })
-  @ApiResponse({
-    status: 200,
-    description:
-      'Job status snapshot. status=ANSWERED means the prompt was a question and `agentMessage` holds the answer (nothing was deployed).',
-  })
   async getCursorUpdateJob(
     @Param('projectId') projectId: string,
     @Param('jobId') jobId: string,
@@ -553,15 +512,6 @@ export class WorkspaceController {
   @HttpCode(HttpStatus.ACCEPTED)
   @UseGuards(CreditsGuard)
   @CreditAction('cursor_agent_update')
-  @ApiOperation({
-    summary:
-      'Queue a code update from natural language, then publish preview when ready.',
-  })
-  @ApiResponse({
-    status: 202,
-    description:
-      '{ data: { jobId, status } } — poll GET cursor-update/jobs/:jobId',
-  })
   async cursorUpdate(
     @Param('projectId') projectId: string,
     @CurrentUser() user: CurrentUserPayload,
@@ -581,7 +531,7 @@ export class WorkspaceController {
       databaseError?: string;
       /**
        * What the SPA should do about it (decision 07). `connect` means show
-       * the "Connect your Supabase" form — Jarvis will NOT provision a
+       * the "Connect your Supabase" form — Iyona will NOT provision a
        * database, so polling for one is a dead wait. `provision` is the legacy
        * path, only returned when managed provisioning is switched on.
        */

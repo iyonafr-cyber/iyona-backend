@@ -1,7 +1,6 @@
 // src/main.ts
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { setupSwagger } from './swagger/swagger.config';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { MongoIdNormalizerInterceptor } from './interceptors/mongo-id-normalizer.interceptor';
 import { GlobalExceptionFilter } from './common/global-exception.filter';
@@ -81,7 +80,7 @@ async function bootstrap() {
     'http://127.0.0.1:5173',
     'http://127.0.0.1:5174',
     'http://127.0.0.1:3000',
-    // Dedicated origin env-var for the jarvis-admin SPA (added for the
+    // Dedicated origin env-var for the iyona-admin SPA (added for the
     // admin MVP so prod admin deploys can live on a separate host).
     ...(process.env.ADMIN_WEB_ORIGIN
       ? process.env.ADMIN_WEB_ORIGIN.split(',').map((o) => o.trim())
@@ -121,9 +120,6 @@ async function bootstrap() {
     defaultVersion: '1',
     type: VersioningType.URI,
   });
-
-  // swagger
-  setupSwagger(app);
 
   // Register TransformInterceptor after all configurations
   app.useGlobalInterceptors(new TransformInterceptor());

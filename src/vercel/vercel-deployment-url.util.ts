@@ -1,6 +1,6 @@
 /**
  * Vercel Deployment Protection (password / Vercel Auth / Trusted IPs) serves an
- * interstitial that sets `X-Frame-Options: DENY`, which blocks the Jarvis
+ * interstitial that sets `X-Frame-Options: DENY`, which blocks the Iyona
  * workspace iframe regardless of CSP `frame-ancestors` on the built app.
  *
  * When "Protection Bypass for Automation" is configured on the Vercel
@@ -29,17 +29,22 @@ export function ensureHttpsDeploymentUrl(url: string): string {
 }
 
 /**
- * Stable public hostname on Vercel for Jarvis projects (matches POST /v13/deployments `name`).
+ * Stable public hostname on Vercel for Iyona projects (matches POST /v13/deployments `name`).
  * Each deployment also receives a unique `jarvis-{projectId}-{hash}.vercel.app` URL; use
- * {@link jarvisVercelPublicPreviewUrl} for the shareable project preview, not the deployment URL.
+ * {@link iyonaVercelPublicPreviewUrl} for the shareable project preview, not the deployment URL.
+ *
+ * Bucket B (compat): the `jarvis-` Vercel project-name prefix is KEPT. Every already-deployed
+ * project lives at `jarvis-<projectId>.vercel.app`; changing the prefix here would make this
+ * resolver point at a hostname that does not exist for existing projects and break their preview.
+ * Renaming the Vercel project prefix belongs to the infra/domain cutover, not the rebrand.
  */
-export function jarvisVercelProjectHostname(projectId: string): string {
+export function iyonaVercelProjectHostname(projectId: string): string {
   return `jarvis-${projectId}.vercel.app`;
 }
 
 /** Canonical https URL for the stable project preview on *.vercel.app. */
-export function jarvisVercelPublicPreviewUrl(projectId: string): string {
-  return ensureHttpsDeploymentUrl(jarvisVercelProjectHostname(projectId));
+export function iyonaVercelPublicPreviewUrl(projectId: string): string {
+  return ensureHttpsDeploymentUrl(iyonaVercelProjectHostname(projectId));
 }
 
 function resolveProtectionBypassSecret(): string | undefined {

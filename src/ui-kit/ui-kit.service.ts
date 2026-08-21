@@ -59,8 +59,14 @@ export class UiKitService implements OnModuleInit {
     palettes?: PaletteOverrides,
     style?: DesignStyle,
   ): Record<string, string> {
-    const primary = { ...DEFAULT_PALETTES.primary, ...(palettes?.primary ?? {}) };
-    const secondary = { ...DEFAULT_PALETTES.secondary, ...(palettes?.secondary ?? {}) };
+    const primary = {
+      ...DEFAULT_PALETTES.primary,
+      ...(palettes?.primary ?? {}),
+    };
+    const secondary = {
+      ...DEFAULT_PALETTES.secondary,
+      ...(palettes?.secondary ?? {}),
+    };
     const accent = { ...DEFAULT_PALETTES.accent, ...(palettes?.accent ?? {}) };
     const designStyle = style ?? DESIGN_STYLES[DEFAULT_DESIGN_STYLE_ID];
 

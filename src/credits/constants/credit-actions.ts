@@ -31,11 +31,7 @@ export interface CreditActionConfig {
   /** UX-facing approximate cost, never the actual deducted value. */
   displayCredits: number;
   /** Task label forwarded to ModelRouter for provider/model selection. */
-  routerTask:
-    | 'classify'
-    | 'plan'
-    | 'reason'
-    | 'extract';
+  routerTask: 'classify' | 'plan' | 'reason' | 'extract';
 }
 
 export const CREDIT_ACTIONS: Record<CreditActionKey, CreditActionConfig> = {

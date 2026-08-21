@@ -128,7 +128,7 @@ export class SupabaseService implements ISupabaseService {
   /**
    * Create (or update the password of) a user in the PROJECT's own Supabase
    * Auth, via its Auth Admin API — not the Management API. Supabase hashes the
-   * password; Jarvis never stores it.
+   * password; Iyona never stores it.
    *
    * `email_confirm: true` skips the verification email: the owner is creating
    * this account deliberately from Project settings, and a generated app has

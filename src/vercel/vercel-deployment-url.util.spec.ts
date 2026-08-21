@@ -2,16 +2,16 @@ import {
   ensureHttpsDeploymentUrl,
   stripVercelProtectionBypass,
   withVercelProtectionBypass,
-  jarvisVercelProjectHostname,
-  jarvisVercelPublicPreviewUrl,
+  iyonaVercelProjectHostname,
+  iyonaVercelPublicPreviewUrl,
 } from './vercel-deployment-url.util';
 
 describe('ensureHttpsDeploymentUrl', () => {
-  it('builds stable Jarvis project preview hostname', () => {
-    expect(jarvisVercelProjectHostname('69fe4e6c1d2c97e96585ba01')).toBe(
+  it('builds stable Iyona project preview hostname', () => {
+    expect(iyonaVercelProjectHostname('69fe4e6c1d2c97e96585ba01')).toBe(
       'jarvis-69fe4e6c1d2c97e96585ba01.vercel.app',
     );
-    expect(jarvisVercelPublicPreviewUrl('69fe4e6c1d2c97e96585ba01')).toBe(
+    expect(iyonaVercelPublicPreviewUrl('69fe4e6c1d2c97e96585ba01')).toBe(
       'https://jarvis-69fe4e6c1d2c97e96585ba01.vercel.app/',
     );
   });

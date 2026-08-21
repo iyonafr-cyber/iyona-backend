@@ -17,7 +17,7 @@ export interface ModelPrice {
 }
 
 /**
- * Provider cost table. All values are what Jarvis *pays* — what the user
+ * Provider cost table. All values are what Iyona *pays* — what the user
  * pays (via the credit price) is determined entirely by the Stripe plan
  * and is independent of this map.
  *

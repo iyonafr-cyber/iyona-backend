@@ -83,7 +83,10 @@ const ARCHETYPES: Record<string, AppArchetype> = {
         key: 'home',
         label:
           'Storefront home: image-led hero, featured/best-seller products, category tiles, social proof/testimonials, newsletter band (≥5 distinct sections)',
-        patterns: [/\b(home|homepage|storefront|accueil|vitrine|landing)\b/i, /\/($|"|`|\s)/],
+        patterns: [
+          /\b(home|homepage|storefront|accueil|vitrine|landing)\b/i,
+          /\/($|"|`|\s)/,
+        ],
       },
       {
         key: 'catalog',
@@ -113,20 +116,26 @@ const ARCHETYPES: Record<string, AppArchetype> = {
         key: 'checkout',
         label:
           'Checkout: multi-step (shipping → payment mock → review) ending in an order confirmation screen',
-        patterns: [/\b(checkout|paiement|caisse|commander|order confirmation|confirmation de commande)\b/i],
+        patterns: [
+          /\b(checkout|paiement|caisse|commander|order confirmation|confirmation de commande)\b/i,
+        ],
       },
       AUTH_LOGIN,
       AUTH_SIGNUP,
       {
         key: 'account',
         label: 'Account: profile details + order history list',
-        patterns: [/\b(account|profile|compte|mon compte|orders|commandes|order history|historique)\b/i],
+        patterns: [
+          /\b(account|profile|compte|mon compte|orders|commandes|order history|historique)\b/i,
+        ],
       },
       {
         key: 'admin',
         label:
           'Admin (role-guarded, admin only): stats dashboard, product CRUD table, orders list',
-        patterns: [/\b(admin|administration|back-?office|gestion|tableau de bord)\b/i],
+        patterns: [
+          /\b(admin|administration|back-?office|gestion|tableau de bord)\b/i,
+        ],
       },
     ],
     guidance: [
@@ -143,7 +152,8 @@ const ARCHETYPES: Record<string, AppArchetype> = {
     pages: [
       {
         key: 'landing',
-        label: 'Marketing landing: hero, feature highlights, social proof, CTA (≥5 sections)',
+        label:
+          'Marketing landing: hero, feature highlights, social proof, CTA (≥5 sections)',
         patterns: [/\b(landing|home|accueil|hero|marketing)\b/i],
       },
       {
@@ -156,17 +166,24 @@ const ARCHETYPES: Record<string, AppArchetype> = {
       {
         key: 'dashboard',
         label: 'Dashboard (guarded): stat cards, charts, recent activity',
-        patterns: [/\b(dashboard|tableau de bord|overview|analytics|accueil de l'app)\b/i],
+        patterns: [
+          /\b(dashboard|tableau de bord|overview|analytics|accueil de l'app)\b/i,
+        ],
       },
       {
         key: 'entityList',
-        label: 'At least one entity list + detail + create/edit flow (the app\'s core CRUD object)',
-        patterns: [/\b(list|table|manage|gestion|détail|detail|create|nouvelle?|new|edit|modifier)\b/i],
+        label:
+          "At least one entity list + detail + create/edit flow (the app's core CRUD object)",
+        patterns: [
+          /\b(list|table|manage|gestion|détail|detail|create|nouvelle?|new|edit|modifier)\b/i,
+        ],
       },
       {
         key: 'settings',
         label: 'Settings / profile: account form, preferences',
-        patterns: [/\b(settings|paramètres|profile|profil|preferences|préférences|compte)\b/i],
+        patterns: [
+          /\b(settings|paramètres|profile|profil|preferences|préférences|compte)\b/i,
+        ],
       },
     ],
     guidance: [
@@ -189,12 +206,16 @@ const ARCHETYPES: Record<string, AppArchetype> = {
       {
         key: 'about',
         label: 'About: story, team, values',
-        patterns: [/\b(about|à propos|our story|team|équipe|company|entreprise)\b/i],
+        patterns: [
+          /\b(about|à propos|our story|team|équipe|company|entreprise)\b/i,
+        ],
       },
       {
         key: 'services',
         label: 'Services/Features: detailed offering breakdown with cards',
-        patterns: [/\b(services?|features?|solutions?|offres?|prestations?|fonctionnalités?)\b/i],
+        patterns: [
+          /\b(services?|features?|solutions?|offres?|prestations?|fonctionnalités?)\b/i,
+        ],
       },
       {
         key: 'contact',
@@ -204,7 +225,9 @@ const ARCHETYPES: Record<string, AppArchetype> = {
       {
         key: 'blog',
         label: 'Blog/News: article index and article page',
-        patterns: [/\b(blog|news|actualités|articles?|journal|magazine|resources|ressources)\b/i],
+        patterns: [
+          /\b(blog|news|actualités|articles?|journal|magazine|resources|ressources)\b/i,
+        ],
       },
     ],
     guidance: [
@@ -225,12 +248,18 @@ const ARCHETYPES: Record<string, AppArchetype> = {
       {
         key: 'work',
         label: 'Work/Projects index: gallery grid of projects',
-        patterns: [/\b(work|projects?|portfolio|projets?|réalisations?|gallery|galerie|case studies)\b/i],
+        patterns: [
+          /\b(work|projects?|portfolio|projets?|réalisations?|gallery|galerie|case studies)\b/i,
+        ],
       },
       {
         key: 'caseStudy',
-        label: 'Project/case-study detail: hero image, problem/solution, gallery',
-        patterns: [/\b(case study|project detail|détail projet|étude de cas)\b/i, /:(id|slug)\b/i],
+        label:
+          'Project/case-study detail: hero image, problem/solution, gallery',
+        patterns: [
+          /\b(case study|project detail|détail projet|étude de cas)\b/i,
+          /:(id|slug)\b/i,
+        ],
       },
       {
         key: 'about',
@@ -243,7 +272,9 @@ const ARCHETYPES: Record<string, AppArchetype> = {
         patterns: [/\b(contact|nous contacter|contactez|get in touch)\b/i],
       },
     ],
-    guidance: ['Lean on imagery and generous whitespace; every project needs a real thumbnail.'],
+    guidance: [
+      'Lean on imagery and generous whitespace; every project needs a real thumbnail.',
+    ],
   },
 
   blog: {
@@ -274,10 +305,14 @@ const ARCHETYPES: Record<string, AppArchetype> = {
       {
         key: 'category',
         label: 'Category/tag page or author page',
-        patterns: [/\b(category|categories|catégorie|tag|topic|rubrique|author|auteur)\b/i],
+        patterns: [
+          /\b(category|categories|catégorie|tag|topic|rubrique|author|auteur)\b/i,
+        ],
       },
     ],
-    guidance: ['Article pages need real long-form typography, not a heading + one paragraph.'],
+    guidance: [
+      'Article pages need real long-form typography, not a heading + one paragraph.',
+    ],
   },
 
   booking: {
@@ -293,30 +328,43 @@ const ARCHETYPES: Record<string, AppArchetype> = {
       {
         key: 'services',
         label: 'Services/menu index + detail: cards with prices/durations',
-        patterns: [/\b(services?|menu|prestations?|offres?|treatments?|rooms?|chambres?)\b/i],
+        patterns: [
+          /\b(services?|menu|prestations?|offres?|treatments?|rooms?|chambres?)\b/i,
+        ],
       },
       {
         key: 'booking',
-        label: 'Booking flow: date/time/slot selection → details → confirmation',
-        patterns: [/\b(book|booking|reserve|reservation|réserv|rendez-?vous|appointment|order)\b/i],
+        label:
+          'Booking flow: date/time/slot selection → details → confirmation',
+        patterns: [
+          /\b(book|booking|reserve|reservation|réserv|rendez-?vous|appointment|order)\b/i,
+        ],
       },
       {
         key: 'confirmation',
         label: 'Confirmation: booking recap screen',
-        patterns: [/\b(confirmation|confirmed|confirmé|recap|récapitulatif|success|merci)\b/i],
+        patterns: [
+          /\b(confirmation|confirmed|confirmé|recap|récapitulatif|success|merci)\b/i,
+        ],
       },
       {
         key: 'contact',
         label: 'Contact/location: address, hours, map, form',
-        patterns: [/\b(contact|location|adresse|hours|horaires|find us|nous trouver)\b/i],
+        patterns: [
+          /\b(contact|location|adresse|hours|horaires|find us|nous trouver)\b/i,
+        ],
       },
       {
         key: 'admin',
         label: 'Admin (guarded): manage bookings/availability',
-        patterns: [/\b(admin|administration|manage|gestion|dashboard|back-?office)\b/i],
+        patterns: [
+          /\b(admin|administration|manage|gestion|dashboard|back-?office)\b/i,
+        ],
       },
     ],
-    guidance: ['The booking flow must reach a confirmation screen — not dead-end on a form.'],
+    guidance: [
+      'The booking flow must reach a confirmation screen — not dead-end on a form.',
+    ],
   },
 
   community: {
@@ -332,7 +380,10 @@ const ARCHETYPES: Record<string, AppArchetype> = {
       {
         key: 'post',
         label: 'Post/thread detail: full post + comments',
-        patterns: [/\b(post|thread|détail|discussion|comment|commentaires?)\b/i, /:(id|slug)\b/i],
+        patterns: [
+          /\b(post|thread|détail|discussion|comment|commentaires?)\b/i,
+          /:(id|slug)\b/i,
+        ],
       },
       {
         key: 'profile',
@@ -344,10 +395,14 @@ const ARCHETYPES: Record<string, AppArchetype> = {
       {
         key: 'create',
         label: 'Create post/content flow',
-        patterns: [/\b(create|nouveau|nouvelle|new post|compose|publier|post)\b/i],
+        patterns: [
+          /\b(create|nouveau|nouvelle|new post|compose|publier|post)\b/i,
+        ],
       },
     ],
-    guidance: ['Seed a believable feed of 10+ posts from distinct users with avatars.'],
+    guidance: [
+      'Seed a believable feed of 10+ posts from distinct users with avatars.',
+    ],
   },
 };
 
@@ -375,7 +430,10 @@ const DETECTION_KEYWORDS: Record<string, Array<[RegExp, number]>> = {
     [/\b(tableau de bord|kpi|metrics|métriques?)\b/i, 2],
   ],
   marketing: [
-    [/\b(landing page|marketing site|business (site|website)|site vitrine|vitrine)\b/i, 4],
+    [
+      /\b(landing page|marketing site|business (site|website)|site vitrine|vitrine)\b/i,
+      4,
+    ],
     [/\b(agency|agence|startup|company|entreprise|brand|marque)\b/i, 2],
     [/\b(services?|solutions?|présentation)\b/i, 1],
   ],
@@ -394,7 +452,10 @@ const DETECTION_KEYWORDS: Record<string, Array<[RegExp, number]>> = {
     [/\b(schedule|calendar|agenda|slot|créneau)\b/i, 2],
   ],
   community: [
-    [/\b(social (network|app|media)|community|communauté|forum|réseau social)\b/i, 5],
+    [
+      /\b(social (network|app|media)|community|communauté|forum|réseau social)\b/i,
+      5,
+    ],
     [/\b(feed|timeline|posts?|followers?|abonnés?|discussion)\b/i, 2],
   ],
 };
@@ -454,7 +515,7 @@ export const ADMIN_PANEL_MANIFEST = [
   'ADMIN ROUTES (plan each as its own section-5 subsection, for EVERY entity the app stores):',
   '  - /admin — dashboard: a row of StatCards with real counts (total products, orders, users…) and a recent-activity list. Keep it simple; it is a landing pad, not an analytics suite.',
   '  - /admin/<entity> — list: a Table with search, sortable columns, pagination, and per-row Edit/Delete actions. Never a card grid.',
-  '  - /admin/<entity>/new — create form carrying EVERY field marked `user` in that entity\'s field table.',
+  "  - /admin/<entity>/new — create form carrying EVERY field marked `user` in that entity's field table.",
   '  - /admin/<entity>/:id/edit — edit form with the same fields, plus Delete behind a confirm modal.',
   '  - /admin/settings — site settings (below).',
   'Every entity the app stores gets that full set — products, orders, categories, posts, bookings, users. An entity a visitor can see but the admin cannot edit is an incomplete app.',
@@ -575,7 +636,9 @@ export function formatPlanLintForRepair(result: PlanLintResult): string {
     'PLAN COMPLETENESS GATE — your plan is missing mandatory parts for this product type. Amend it (keep everything already good; ADD what is missing) so it satisfies all of the following:',
   ];
   if (result.missingPages.length > 0) {
-    lines.push('Add these missing screens (full Pages-section subsections + routing-table rows + file-map entries):');
+    lines.push(
+      'Add these missing screens (full Pages-section subsections + routing-table rows + file-map entries):',
+    );
     for (const p of result.missingPages) lines.push(`  - ${p.label}`);
   }
   if (result.routeCount < result.minPages) {
@@ -590,7 +653,7 @@ export function formatPlanLintForRepair(result: PlanLintResult): string {
   }
   if (result.entityViolations.length > 0) {
     lines.push(
-      'Fix these ENTITY FIELD CONTRACT gaps — a create/edit form must collect every field marked `user` in that entity\'s table, or the generated app ships a form that cannot produce the records its own cards display:',
+      "Fix these ENTITY FIELD CONTRACT gaps — a create/edit form must collect every field marked `user` in that entity's table, or the generated app ships a form that cannot produce the records its own cards display:",
     );
     lines.push(...formatEntityViolationsForRepair(result.entityViolations));
   }

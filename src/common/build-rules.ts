@@ -91,7 +91,7 @@ export const ENTITY_PARITY_FOR_WORKER = [
 export const ENTITY_PARITY_FOR_FIX = [
   "ENTITY FIELD PARITY: for each CRUD entity, the create and edit forms must each have an input for EVERY user-supplied field the entity's type, seed data, card and detail page use — only auto-generated fields (id, createdAt, slug, computed counts) may be missing.",
   `${PARITY_FAILURE.charAt(0).toUpperCase()}${PARITY_FAILURE.slice(1)} is a bug: add the missing inputs, keep ONE name per field across every surface, and make sure every seed record fills every field.`,
-  'When a change touches an entity\'s fields, update EVERY surface in the same edit — the type, the seed data, both forms, the card, the detail page, any filters, and __schema__.json if it exists. Adding a field means adding its input AND its display AND populating it in the seed records; renaming means renaming everywhere.',
+  "When a change touches an entity's fields, update EVERY surface in the same edit — the type, the seed data, both forms, the card, the detail page, any filters, and __schema__.json if it exists. Adding a field means adding its input AND its display AND populating it in the seed records; renaming means renaming everywhere.",
 ].join(' ');
 
 // ── Database sync ───────────────────────────────────────────────────────────

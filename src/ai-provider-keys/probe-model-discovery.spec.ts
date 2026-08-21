@@ -75,8 +75,7 @@ function modalitiesRejected(model: string) {
       data: {
         error: {
           code: 400,
-          message:
-            `The requested combination of response modalities (TEXT) is not supported by the model. models/${model} accepts the following combination of response modalities:\n* AUDIO\n`,
+          message: `The requested combination of response modalities (TEXT) is not supported by the model. models/${model} accepts the following combination of response modalities:\n* AUDIO\n`,
           status: 'INVALID_ARGUMENT',
         },
       },
@@ -176,11 +175,7 @@ describe('Provider key probe', () => {
 
   it('walks past a 503 high-demand flash model onto a different family', async () => {
     (mockedAxios.get as jest.Mock).mockResolvedValue(
-      listing([
-        'gemini-2.5-flash',
-        'gemini-2.0-flash',
-        'gemini-3.6-pro',
-      ]),
+      listing(['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-3.6-pro']),
     );
     (mockedAxios.post as jest.Mock).mockImplementation((url: string) =>
       url.includes('flash')
@@ -204,7 +199,10 @@ describe('Provider key probe', () => {
     (mockedAxios.post as jest.Mock).mockRejectedValue({
       isAxiosError: true,
       message: 'Request failed with status code 401',
-      response: { status: 401, data: { error: { message: 'API key invalid' } } },
+      response: {
+        status: 401,
+        data: { error: { message: 'API key invalid' } },
+      },
     });
 
     const { service, health } = buildService([]);

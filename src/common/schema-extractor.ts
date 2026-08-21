@@ -1,4 +1,4 @@
-import { JarvisSchemaDeclaration } from '../supabase/interface/supabase-schema.interface';
+import { IyonaSchemaDeclaration } from '../supabase/interface/supabase-schema.interface';
 
 /**
  * Extract a ===SCHEMA=== ... ===END_SCHEMA=== JSON block from AI
@@ -7,7 +7,7 @@ import { JarvisSchemaDeclaration } from '../supabase/interface/supabase-schema.i
  */
 export function extractSchemaDeclaration(
   output: string,
-): JarvisSchemaDeclaration | null {
+): IyonaSchemaDeclaration | null {
   const startMarker = '===SCHEMA===';
   const endMarker = '===END_SCHEMA===';
 
@@ -22,7 +22,7 @@ export function extractSchemaDeclaration(
   if (!raw) return null;
 
   try {
-    const parsed = JSON.parse(raw) as JarvisSchemaDeclaration;
+    const parsed = JSON.parse(raw) as IyonaSchemaDeclaration;
 
     // Basic validation
     if (!parsed.version || !Array.isArray(parsed.tables)) return null;

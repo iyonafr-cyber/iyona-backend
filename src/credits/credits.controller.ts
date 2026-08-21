@@ -9,7 +9,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorator/roles.decorator';
@@ -23,7 +22,6 @@ import { CREDIT_ACTIONS, CreditActionKey } from './constants/credit-actions';
 import { PLANS, TOPUP_PACKS, getPlan } from './constants/plans';
 import { AuthedRequest } from './types/authed-request';
 
-@ApiTags('Credits')
 @Controller('credits')
 export class CreditsController {
   constructor(
@@ -32,18 +30,12 @@ export class CreditsController {
     private readonly subscriptionService: CreditsSubscriptionService,
   ) {}
 
-  @ApiOperation({
-    summary:
-      'Public signup welcome bonus amount (for marketing UI; unauthenticated)',
-  })
   @Get('signup-offer')
   getSignupOffer() {
     const bonusCredits = this.creditsService.getSignupBonusCreditsOffer();
     return { data: { bonusCredits } };
   }
 
-  @ApiOperation({ summary: 'Get current credit balance and plan' })
-  @ApiBearerAuth('JWT-auth')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.USER, UserRole.ADMIN)
   @Get('balance')
@@ -53,8 +45,6 @@ export class CreditsController {
     return { data: balance };
   }
 
-  @ApiOperation({ summary: 'List recent credit usage' })
-  @ApiBearerAuth('JWT-auth')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.USER, UserRole.ADMIN)
   @Get('usage')
@@ -76,10 +66,6 @@ export class CreditsController {
     return { data: safe };
   }
 
-  @ApiOperation({
-    summary: 'Current plan + available plans + action cost hints',
-  })
-  @ApiBearerAuth('JWT-auth')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.USER, UserRole.ADMIN)
   @Get('plan')
@@ -116,10 +102,6 @@ export class CreditsController {
     };
   }
 
-  @ApiOperation({
-    summary: 'Create a Stripe Checkout session for a top-up pack',
-  })
-  @ApiBearerAuth('JWT-auth')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.USER, UserRole.ADMIN)
   @HttpCode(HttpStatus.OK)
@@ -138,10 +120,6 @@ export class CreditsController {
     return { data };
   }
 
-  @ApiOperation({
-    summary: 'Create a Stripe Checkout session for a subscription plan',
-  })
-  @ApiBearerAuth('JWT-auth')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.USER, UserRole.ADMIN)
   @HttpCode(HttpStatus.OK)
@@ -161,10 +139,6 @@ export class CreditsController {
     return { data };
   }
 
-  @ApiOperation({
-    summary: 'Create a Stripe Billing Portal session for self-serve management',
-  })
-  @ApiBearerAuth('JWT-auth')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.USER, UserRole.ADMIN)
   @HttpCode(HttpStatus.OK)
@@ -185,8 +159,6 @@ export class CreditsController {
   // Admin endpoints
   // ──────────────────────────────────────────────────────────────
 
-  @ApiOperation({ summary: 'ADMIN: Aggregate margin over the last N days' })
-  @ApiBearerAuth('JWT-auth')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Get('admin/margin')

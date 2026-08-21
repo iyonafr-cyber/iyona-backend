@@ -11,7 +11,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   IsBoolean,
   IsEnum,
@@ -53,8 +52,6 @@ export class PatchAdminUserDto {
   reason?: string;
 }
 
-@ApiTags('admin-users')
-@ApiBearerAuth('JWT-auth')
 @Controller('admin/users')
 @UseGuards(AuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
@@ -62,7 +59,6 @@ export class AdminUsersController {
   constructor(private readonly adminUsers: AdminUsersService) {}
 
   @Get()
-  @ApiOperation({ summary: 'List users (paginated, filterable)' })
   async list(
     @Query('q') q?: string,
     @Query('role') role?: UserRole,
@@ -93,14 +89,12 @@ export class AdminUsersController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'User detail with projects, ledger, stats' })
   async detail(@Param('id') id: string) {
     const data = await this.adminUsers.detail(id);
     return { data };
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Patch user (role/plan/verified/deleted/suspend)' })
   async patch(
     @Param('id') id: string,
     @Body() dto: PatchAdminUserDto,
@@ -113,7 +107,6 @@ export class AdminUsersController {
 
   @Post(':id/force-logout')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Revoke all active sessions for a user' })
   async forceLogout(@Param('id') id: string, @Req() req: AdminRequest) {
     const actor = AuditLogService.actorFromRequest(req);
     await this.adminUsers.forceLogout(id, actor);
@@ -122,7 +115,6 @@ export class AdminUsersController {
 
   @Post(':id/resend-verification')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Regenerate and return a verification token' })
   async resendVerification(@Param('id') id: string, @Req() req: AdminRequest) {
     const actor = AuditLogService.actorFromRequest(req);
     const data = await this.adminUsers.resendVerification(id, actor);

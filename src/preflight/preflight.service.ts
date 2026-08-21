@@ -280,8 +280,10 @@ export class PreflightService {
    * valid, and do we have calls left to seed a repo.
    */
   private async checkGithub(): Promise<PreflightCheck> {
+    // Bucket B (env migration): new IYONA_* name first, legacy JARVIS_* fallback.
     const token =
       process.env.GITHUB_PAT?.trim() ||
+      process.env.IYONA_GITHUB_TOKEN?.trim() ||
       process.env.JARVIS_GITHUB_TOKEN?.trim() ||
       '';
 
@@ -292,7 +294,8 @@ export class PreflightService {
         status: 'down',
         blocking: true,
         reason: 'missing_config',
-        detail: 'No GitHub token configured (GITHUB_PAT / JARVIS_GITHUB_TOKEN)',
+        detail:
+          'No GitHub token configured (GITHUB_PAT / IYONA_GITHUB_TOKEN, legacy JARVIS_GITHUB_TOKEN)',
       };
     }
 
@@ -318,10 +321,7 @@ export class PreflightService {
           detail: 'GitHub core rate limit exhausted',
         };
       }
-      if (
-        typeof remaining === 'number' &&
-        remaining < GITHUB_LOW_RATE_LIMIT
-      ) {
+      if (typeof remaining === 'number' && remaining < GITHUB_LOW_RATE_LIMIT) {
         return {
           id: 'github',
           label: 'GitHub',

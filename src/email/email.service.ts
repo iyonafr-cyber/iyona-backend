@@ -26,7 +26,9 @@ export class EmailService {
     return (
       process.env.MAIL_FROM ||
       process.env.RESEND_FROM ||
-      'Jarvis <noreply@jarvis.site>'
+      // Display name rebranded; the @jarvis.site domain is kept here as the
+      // fallback and moves with the mail/domain infra cutover (set MAIL_FROM).
+      'Iyona AI <noreply@jarvis.site>'
     );
   }
 

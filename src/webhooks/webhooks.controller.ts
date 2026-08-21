@@ -9,7 +9,6 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import {
   CurrentUser,
@@ -18,14 +17,11 @@ import {
 import { WebhooksService } from './webhooks.service';
 import { CreateWebhookDto, UpdateWebhookDto } from './dto/webhook.dto';
 
-@ApiTags('Webhooks (E12)')
-@ApiBearerAuth('JWT-auth')
 @UseGuards(AuthGuard)
 @Controller('organizations/:orgId/webhooks')
 export class WebhooksController {
   constructor(private readonly webhooks: WebhooksService) {}
 
-  @ApiOperation({ summary: 'List webhooks for the org.' })
   @Get()
   async list(
     @Param('orgId') orgId: string,
@@ -46,7 +42,6 @@ export class WebhooksController {
     };
   }
 
-  @ApiOperation({ summary: 'Create a webhook subscription.' })
   @Post()
   async create(
     @Param('orgId') orgId: string,
@@ -74,7 +69,6 @@ export class WebhooksController {
     };
   }
 
-  @ApiOperation({ summary: 'Update / pause / resume a webhook.' })
   @Patch(':id')
   async update(
     @Param('orgId') orgId: string,
@@ -96,7 +90,6 @@ export class WebhooksController {
     };
   }
 
-  @ApiOperation({ summary: 'Delete a webhook.' })
   @Delete(':id')
   async remove(
     @Param('orgId') orgId: string,
@@ -107,7 +100,6 @@ export class WebhooksController {
     return { ok: true };
   }
 
-  @ApiOperation({ summary: 'Send a test payload to the webhook URL.' })
   @Post(':id/test')
   async test(
     @Param('orgId') orgId: string,
@@ -118,7 +110,6 @@ export class WebhooksController {
     return { data: { _id: String(d._id), status: d.status } };
   }
 
-  @ApiOperation({ summary: 'List recent delivery attempts.' })
   @Get('deliveries/all')
   async listAllDeliveries(
     @Param('orgId') orgId: string,

@@ -98,8 +98,8 @@ describe('finalizePreviewUrlForApi', () => {
     delete process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
     expect(
       finalizePreviewUrlForApi(
-        'jarvis-69fe4e6c1d2c97e96585ba01-7zeorot1w.vercel.app',
+        'iyona-69fe4e6c1d2c97e96585ba01-7zeorot1w.vercel.app',
       ),
-    ).toBe('https://jarvis-69fe4e6c1d2c97e96585ba01-7zeorot1w.vercel.app/');
+    ).toBe('https://iyona-69fe4e6c1d2c97e96585ba01-7zeorot1w.vercel.app/');
   });
 });

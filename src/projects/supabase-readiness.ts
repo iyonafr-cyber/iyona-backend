@@ -13,7 +13,7 @@ export type SupabaseReadinessSnapshot = Pick<
   | 'dbUrlEnc'
 >;
 
-/** True when this project's database is owner-supplied rather than Jarvis-provisioned. */
+/** True when this project's database is owner-supplied rather than Iyona-provisioned. */
 export function isByoSupabase(
   sb: SupabaseReadinessSnapshot | null | undefined,
 ): boolean {
@@ -25,7 +25,7 @@ export function isByoSupabase(
  * Cursor agent need. Status alone is not enough — a row can be `failed` while
  * still holding keys from a partial run.
  *
- * The service-role key is required for MANAGED projects only. Jarvis
+ * The service-role key is required for MANAGED projects only. Iyona
  * provisions those itself, so a missing service-role key means the run was
  * incomplete and the row is not trustworthy. For BYO the key is optional by
  * design (decision 07): it buys exactly one feature — creating the generated
@@ -49,7 +49,7 @@ export function isSupabaseReadyForUse(
  *
  * - `mgmt` — Management API with the platform token. Managed projects only.
  * - `postgres` — direct connection with the owner's database password (BYO).
- * - `manual` — no DDL transport. Jarvis generates the SQL and the owner runs
+ * - `manual` — no DDL transport. Iyona generates the SQL and the owner runs
  *   it in the Supabase SQL editor.
  * - `none` — no database at all; there is nothing to migrate.
  */

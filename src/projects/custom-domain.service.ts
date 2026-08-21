@@ -55,6 +55,8 @@ export class CustomDomainService {
   ) {}
 
   private vercelProjectName(projectId: string): string {
+    // Bucket B (compat): must match the name used at deploy time
+    // (`vercel.service.ts`). Existing projects live under `jarvis-<id>`; keep it.
     return `jarvis-${projectId}`;
   }
 

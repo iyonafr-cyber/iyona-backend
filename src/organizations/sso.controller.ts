@@ -11,7 +11,6 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 
@@ -37,7 +36,6 @@ import { OrganizationsService } from './organizations.service';
  *     org owner uses these to set the SSO domain, generate a WorkOS
  *     admin portal link, and flip the "require SSO" switch.
  */
-@ApiTags('SSO (E10)')
 @Controller()
 export class SsoController {
   constructor(
@@ -49,7 +47,6 @@ export class SsoController {
   // ─── Public auth endpoints ────────────────────────────────────────
 
   @Public()
-  @ApiOperation({ summary: 'Check whether SSO is required for an email.' })
   @Get('auth/sso/check')
   async check(@Query('email') email: string): Promise<{
     available: boolean;
@@ -65,9 +62,6 @@ export class SsoController {
   }
 
   @Public()
-  @ApiOperation({
-    summary: 'Begin SSO sign-in. Redirects to the IdP via WorkOS.',
-  })
   @Get('auth/sso/start')
   async start(
     @Query('email') email: string,
@@ -120,9 +114,6 @@ export class SsoController {
   }
 
   @Public()
-  @ApiOperation({
-    summary: 'WorkOS callback. Exchanges code for a Jarvis JWT.',
-  })
   @Get('auth/sso/callback')
   async callback(
     @Query('code') code: string,
@@ -153,10 +144,8 @@ export class SsoController {
 
   // ─── Admin config (JWT) ───────────────────────────────────────────
 
-  @ApiBearerAuth('JWT-auth')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.USER)
-  @ApiOperation({ summary: 'Read SSO configuration for an org.' })
   @Get('organizations/:orgId/sso')
   async getConfig(
     @Param('orgId') orgId: string,
@@ -177,10 +166,8 @@ export class SsoController {
     };
   }
 
-  @ApiBearerAuth('JWT-auth')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.USER)
-  @ApiOperation({ summary: 'Update SSO configuration (admin or owner only).' })
   @Patch('organizations/:orgId/sso')
   async updateConfig(
     @Param('orgId') orgId: string,
@@ -197,12 +184,8 @@ export class SsoController {
     return { ok: true };
   }
 
-  @ApiBearerAuth('JWT-auth')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.USER)
-  @ApiOperation({
-    summary: 'Generate a WorkOS admin portal link for IT to wire up the IdP.',
-  })
   @Post('organizations/:orgId/sso/admin-portal')
   async portalLink(
     @Param('orgId') orgId: string,

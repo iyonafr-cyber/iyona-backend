@@ -9,7 +9,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '../../auth/guards/auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorator/roles.decorator';
@@ -19,8 +18,6 @@ import { CreditLedgerType } from '../../credits/entities/credit-ledger.entity';
 import { AdminRequest, AuditLogService } from '../audit/audit-log.service';
 import { AdminCreditsService } from './admin-credits.service';
 
-@ApiTags('admin-credits')
-@ApiBearerAuth('JWT-auth')
 @Controller('admin/credits')
 @UseGuards(AuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
@@ -28,7 +25,6 @@ export class AdminCreditsController {
   constructor(private readonly adminCredits: AdminCreditsService) {}
 
   @Get('ledger')
-  @ApiOperation({ summary: 'Browse the credit ledger with filters' })
   async ledger(
     @Query('userId') userId?: string,
     @Query('type') type?: CreditLedgerType,
@@ -49,7 +45,6 @@ export class AdminCreditsController {
   }
 
   @Get('top-spenders')
-  @ApiOperation({ summary: 'Top spenders by provider cost (N days)' })
   async topSpenders(
     @Query('days') days?: string,
     @Query('limit') limit?: string,
@@ -63,7 +58,6 @@ export class AdminCreditsController {
 
   @Post('adjust')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Adjust a user's credit balance (audited)" })
   async adjust(
     @Body() dto: AdminAdjustDto,
     @Req() req: AdminRequest,

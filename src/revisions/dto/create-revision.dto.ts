@@ -1,4 +1,3 @@
-import { ApiProperty } from '@nestjs/swagger';
 import {
   IsNotEmpty,
   IsObject,
@@ -35,31 +34,15 @@ export class IsRecordOfStringsConstraint implements ValidatorConstraintInterface
 }
 
 export class CreateRevisionDto {
-  @ApiProperty({
-    description: 'The generated code files',
-    example: {
-      'index.html': '<!DOCTYPE html>...',
-      'src/App.tsx': 'export default function App() {...}',
-    },
-  })
   @IsObject()
   @IsNotEmpty()
   @Validate(IsRecordOfStringsConstraint)
   files: Record<string, string>;
 
-  @ApiProperty({
-    description: 'Optional commit message for this revision',
-    example: 'Added authentication feature',
-    required: false,
-  })
   @IsString()
   @IsOptional()
   commitMessage?: string;
 
-  @ApiProperty({
-    description: 'Optional metadata for this revision',
-    required: false,
-  })
   @IsObject()
   @IsOptional()
   metadata?: Record<string, any>;

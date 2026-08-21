@@ -137,14 +137,14 @@ export class GitHubConfig {
 }
 
 /**
- * Jarvis-owned GitHub repo that is canonical source-of-truth for this project.
+ * Iyona-owned GitHub repo that is canonical source-of-truth for this project.
  * Created once when the first revision is generated. All deploys read from this
  * repo (pinned SHA). The user-connected repo (githubConfig) remains a secondary
  * mirror for the future "push to my repo" feature.
  */
 @Schema({ _id: false })
-export class JarvisGithubRepo {
-  /** GitHub org login, e.g. "jarvis-apps" */
+export class IyonaGithubRepo {
+  /** GitHub org login, e.g. "iyona-apps" */
   @Prop({ type: String, required: true })
   owner: string;
 
@@ -163,8 +163,8 @@ export class JarvisGithubRepo {
   @Prop({ type: Date, required: true })
   createdAt: Date;
 }
-export const JarvisGithubRepoSchema =
-  SchemaFactory.createForClass(JarvisGithubRepo);
+export const IyonaGithubRepoSchema =
+  SchemaFactory.createForClass(IyonaGithubRepo);
 
 /**
  * Supabase project linked to this generated app (E1 in the platform
@@ -193,10 +193,10 @@ export type SupabaseStatus =
 /**
  * Who owns the Supabase project behind this app (decision 07).
  *
- * - `managed` — Jarvis provisioned it in the platform org via the Management
+ * - `managed` — Iyona provisioned it in the platform org via the Management
  *   API. Legacy: gated behind `SUPABASE_MANAGED_PROVISIONING`, off by default.
  * - `byo` — the owner created it in their own Supabase account and connected
- *   it from Project settings. Jarvis holds credentials but no org-level
+ *   it from Project settings. Iyona holds credentials but no org-level
  *   authority, so DDL goes over a direct Postgres connection if the owner
  *   supplied one, and is handed to them as SQL if not.
  *
@@ -240,7 +240,7 @@ export class SupabaseConfig {
 
   /**
    * Encrypted (AES) Postgres connection string for BYO projects — the single
-   * credential that lets Jarvis run migrations against a database it does not
+   * credential that lets Iyona run migrations against a database it does not
    * own (decision 07).
    *
    * SERVER-ONLY, and more sensitive than everything above it: the anon key is
@@ -304,7 +304,7 @@ export class SupabaseConfig {
   /**
    * Email of the generated app's admin account, created by the owner from
    * Project settings → Admin. Only the address is stored — the password is
-   * handed straight to Supabase Auth and never persisted by Jarvis.
+   * handed straight to Supabase Auth and never persisted by Iyona.
    */
   @Prop({ type: String, required: false })
   adminEmail?: string;
@@ -324,7 +324,7 @@ export class SupabaseConfig {
   /**
    * JSON snapshot of the last successfully applied schema declaration.
    * Used for diffing on the next generation to detect additive vs
-   * destructive changes. Shape: JarvisSchemaDeclaration (see
+   * destructive changes. Shape: IyonaSchemaDeclaration (see
    * supabase/interface/supabase-schema.interface.ts).
    */
   @Prop({ type: mongoose.Schema.Types.Mixed, required: false })
@@ -336,7 +336,7 @@ export const SupabaseConfigSchema =
 /**
  * Analytics provider config for the deployed app (E13). When set, the
  * preview-bridge in the iframe loads the chosen provider's SDK and
- * starts forwarding `window.jarvisTrack(...)` calls to it.
+ * starts forwarding `window.iyonaTrack(...)` calls to it.
  *
  * The same values are also injected into the production build at
  * deploy time via `vercel.service.ts` env vars (`VITE_ANALYTICS_*`)
@@ -613,12 +613,16 @@ export class UserProject extends Document {
   githubConfig: GitHubConfig;
 
   /**
-   * Jarvis-owned repo — the canonical codebase for this project.
+   * Iyona-owned repo — the canonical codebase for this project.
    * Null until the first generation push. Once set, all deploys read
    * from this repo at a pinned commit SHA.
    */
-  @Prop({ type: JarvisGithubRepoSchema, default: null })
-  jarvisGithub?: JarvisGithubRepo | null;
+  // Bucket B (persisted field): the Mongo field name stays `jarvisGithub`.
+  // Every existing project document stores the GitHub owner/repo under this key;
+  // renaming the property renames the BSON field and orphans that binding for all
+  // existing projects (deploys/preview would lose their repo). Keep the key.
+  @Prop({ type: IyonaGithubRepoSchema, default: null })
+  jarvisGithub?: IyonaGithubRepo | null;
 
   // PATCH ENGINE FIELDS
   @Prop({ type: Boolean, default: false })

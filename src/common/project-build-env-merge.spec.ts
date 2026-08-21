@@ -20,12 +20,9 @@ describe('mergeProjectDeployBuildEnv', () => {
   });
 
   it('includes the Stripe env map when provided', () => {
-    const merged = mergeProjectDeployBuildEnv(
-      undefined,
-      undefined,
-      undefined,
-      { VITE_STRIPE_PUBLISHABLE_KEY: 'pk_test_123' },
-    );
+    const merged = mergeProjectDeployBuildEnv(undefined, undefined, undefined, {
+      VITE_STRIPE_PUBLISHABLE_KEY: 'pk_test_123',
+    });
     expect(merged?.VITE_STRIPE_PUBLISHABLE_KEY).toBe('pk_test_123');
   });
 

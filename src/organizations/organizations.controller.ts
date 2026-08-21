@@ -9,12 +9,6 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 
 import { AuthGuard } from '../auth/guards/auth.guard';
@@ -38,20 +32,12 @@ import {
   UpdateOrganizationDto,
 } from './dto/organization.dto';
 
-@ApiTags('Organizations')
-@ApiBearerAuth('JWT-auth')
 @UseGuards(AuthGuard, RolesGuard)
 @Roles(UserRole.USER)
 @Controller('organizations')
 export class OrganizationsController {
   constructor(private readonly orgService: OrganizationsService) {}
 
-  @ApiOperation({
-    summary: 'List organizations the caller belongs to (E8).',
-    description:
-      'On first call, lazily creates a personal workspace if the user has none.',
-  })
-  @ApiResponse({ status: 200, type: [OrganizationListItemDto] })
   @Get('mine')
   async listMine(
     @CurrentUser() user: CurrentUserPayload,
@@ -87,8 +73,6 @@ export class OrganizationsController {
     return { data, activeOrgId: active };
   }
 
-  @ApiOperation({ summary: 'Create a new organization (E8).' })
-  @ApiResponse({ status: 201, type: OrganizationDto })
   @Post()
   async create(
     @Body() dto: CreateOrganizationDto,
@@ -98,8 +82,6 @@ export class OrganizationsController {
     return { data: this.toDto(org) };
   }
 
-  @ApiOperation({ summary: 'Update organization name/featureFlags (E8).' })
-  @ApiResponse({ status: 200, type: OrganizationDto })
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -110,8 +92,6 @@ export class OrganizationsController {
     return { data: this.toDto(org) };
   }
 
-  @ApiOperation({ summary: 'Delete a non-personal organization (E8).' })
-  @ApiResponse({ status: 204 })
   @Delete(':id')
   async remove(
     @Param('id') id: string,
@@ -121,8 +101,6 @@ export class OrganizationsController {
     return { ok: true };
   }
 
-  @ApiOperation({ summary: 'Switch the current active org (E8).' })
-  @ApiResponse({ status: 200, type: OrganizationDto })
   @Put('switch')
   async switch(
     @Body() dto: SwitchOrganizationDto,
@@ -134,8 +112,6 @@ export class OrganizationsController {
 
   // ── Members ────────────────────────────────────────────────────
 
-  @ApiOperation({ summary: 'List members of an organization (E8).' })
-  @ApiResponse({ status: 200, type: [OrgMemberDto] })
   @Get(':id/members')
   async listMembers(
     @Param('id') id: string,
@@ -162,8 +138,6 @@ export class OrganizationsController {
     };
   }
 
-  @ApiOperation({ summary: 'Invite an existing user to the org (E8).' })
-  @ApiResponse({ status: 201, type: OrgMemberDto })
   @Post(':id/members')
   async invite(
     @Param('id') id: string,
@@ -185,8 +159,6 @@ export class OrganizationsController {
     };
   }
 
-  @ApiOperation({ summary: 'Update a member role / transfer ownership (E8).' })
-  @ApiResponse({ status: 200, type: OrgMemberDto })
   @Patch(':id/members/:userId')
   async updateRole(
     @Param('id') id: string,
@@ -214,10 +186,6 @@ export class OrganizationsController {
     };
   }
 
-  @ApiOperation({
-    summary: 'Remove a member (or leave the org if removing yourself) (E8).',
-  })
-  @ApiResponse({ status: 200 })
   @Delete(':id/members/:userId')
   async removeMember(
     @Param('id') id: string,

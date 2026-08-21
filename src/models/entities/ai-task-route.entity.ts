@@ -11,11 +11,7 @@ import { Document, Schema as MongooseSchema, Types } from 'mongoose';
  * `credits` — `credits` already imports `models`, and the reverse edge would
  * close a cycle.
  */
-export type RouterTaskName =
-  | 'classify'
-  | 'plan'
-  | 'reason'
-  | 'extract';
+export type RouterTaskName = 'classify' | 'plan' | 'reason' | 'extract';
 
 export const ROUTER_TASKS: ReadonlyArray<RouterTaskName> = [
   'classify',

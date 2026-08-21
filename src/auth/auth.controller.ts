@@ -13,7 +13,6 @@ import type { IAuthService } from './interface/auth.service.interface';
 import { LoginUserDto } from 'src/user/dto/login-user.dto';
 import { UserDto } from 'src/user/dto/user.dto';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { UserRole } from 'src/user/roles/roles.enum';
 import { LogoutDto } from './dto/logout-user.dto';
 import { AuthGuard } from './guards/auth.guard';
@@ -35,14 +34,12 @@ export class AuthController {
     @Inject('IAuthService') private readonly authService: IAuthService,
   ) {}
 
-  @ApiOperation({ summary: 'register user' })
   @Post('signup')
   async signup(@Body() dto: CreateUserDto): Promise<{ data: UserDto }> {
     const response = await this.authService.signUpUser(dto);
     return { data: response };
   }
 
-  @ApiOperation({ summary: 'login user' })
   // Password login is the single highest-value brute-force target in the
   // app; narrow the bucket well below the general auth allowance.
   @Throttle({ auth: { limit: 5, ttl: 60_000 } })
@@ -52,10 +49,6 @@ export class AuthController {
     return { data: response };
   }
 
-  @ApiOperation({
-    summary: `Logout user by invalidating refresh token Role ${Object.values(UserRole).join(', ')}`,
-  })
-  @ApiBearerAuth('JWT-auth')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.USER, UserRole.ADMIN)
   @Post('logout')
@@ -64,10 +57,7 @@ export class AuthController {
     return { data: 'logout successfully' };
   }
 
-  @ApiOperation({
-    summary: `Refresh the access token using the refresh token Role ${Object.values(UserRole).join(', ')}`,
-  })
-  @ApiBearerAuth('JWT-auth') // Indicates Bearer Auth for Swagger UI
+  // Indicates Bearer Auth for Swagger UI
   @Post('refresh-token')
   async refreshToken(
     @Req() request: any,
@@ -83,16 +73,11 @@ export class AuthController {
     return this.authService.refreshToken(token); // Call the service with the token
   }
 
-  @ApiOperation({
-    summary:
-      'Issue a short-lived HMAC-signed OAuth state nonce for Google/GitHub login',
-  })
   @Get('oauth/state')
   oauthState(): { data: { state: string; expiresAt: number } } {
     return { data: this.authService.issueOAuthState() };
   }
 
-  @ApiOperation({ summary: 'Login or signup with Google OAuth' })
   @Post('google')
   async googleLogin(@Body() dto: GoogleLoginDto): Promise<{ data: UserDto }> {
     const response = await this.authService.googleLogin(
@@ -102,7 +87,6 @@ export class AuthController {
     return { data: response };
   }
 
-  @ApiOperation({ summary: 'Login or signup with GitHub OAuth' })
   @Post('github')
   async githubLogin(@Body() dto: GitHubLoginDto): Promise<{ data: UserDto }> {
     const response = await this.authService.githubLogin({
@@ -112,7 +96,6 @@ export class AuthController {
     return { data: response };
   }
 
-  @ApiOperation({ summary: 'Request a password reset email' })
   @Throttle({ auth: { limit: 5, ttl: 60_000 } })
   @Post('forgot-password')
   async forgotPassword(
@@ -126,7 +109,6 @@ export class AuthController {
     };
   }
 
-  @ApiOperation({ summary: 'Reset password using a token emailed to the user' })
   @Throttle({ auth: { limit: 10, ttl: 60_000 } })
   @Post('reset-password')
   async resetPassword(
@@ -136,7 +118,6 @@ export class AuthController {
     return { message: 'Password reset successfully' };
   }
 
-  @ApiOperation({ summary: 'Resend verification email' })
   @Throttle({ auth: { limit: 5, ttl: 60_000 } })
   @Post('resend-verification')
   async resendVerification(
@@ -149,7 +130,6 @@ export class AuthController {
     };
   }
 
-  @ApiOperation({ summary: 'Verify email using a token emailed to the user' })
   @Post('verify-email')
   async verifyEmail(@Body() dto: VerifyEmailDto): Promise<{ message: string }> {
     await this.authService.verifyEmail(dto.token, dto.email);

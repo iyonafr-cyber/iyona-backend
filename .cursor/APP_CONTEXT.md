@@ -27,7 +27,7 @@ Jarvis is a **Lovable / Bolt.new–style AI app builder**: users describe an app
 | Framework | **NestJS 11**, TypeScript, Express 5 |
 | Data | **MongoDB** + Mongoose (`MONGO_URL`), `maxPoolSize: 10`, 5s server selection, 45s socket |
 | HTTP | Body limit **10mb**; Stripe webhook uses **raw** body before JSON parser |
-| Validation / docs | `class-validator` + `class-transformer`; **Swagger** on public surface |
+| Validation | `class-validator` + `class-transformer` |
 | Auth | **passport-jwt** (access + refresh), Google + GitHub OAuth, **WorkOS** SSO |
 | AI providers | Anthropic, OpenAI, Google Gemini — routing/pricing via **ModelsModule** + **CreditsModule**; catalog **default ("Auto") = `gemini-3-1-high`** (Google). Platform provider keys via **AiProviderKeysModule** (`AiProviderRouterService` + `AiProviderHealthService`) |
 | Integrations | **Stripe**, **AWS S3**, **Vercel**, **GitHub** (Octokit), optional **Supabase** per project |
@@ -41,7 +41,7 @@ Jarvis is a **Lovable / Bolt.new–style AI app builder**: users describe an app
 
 - **Interceptors:** `TransformInterceptor`, `MongoIdNormalizerInterceptor`
 - **Filters:** `GlobalExceptionFilter`
-- **Bootstrap:** `bootstrap()` → `setupSwagger()` (`src/swagger/swagger.config.ts`)
+- **Bootstrap:** `bootstrap()` in `src/main.ts`
 - **Errors:** `logAndThrowError()` — high fan-out helper (graph god node)
 
 ### Data model (high level)
