@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Client } from 'node_modules/@types/pg';
+import { Client } from 'pg';
 import {
   explainConnectionError,
   parseSupabaseConnectionString,

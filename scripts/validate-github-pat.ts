@@ -83,7 +83,7 @@ async function validateToken(
   }
 
   if (!org) {
-    console.log('OK: personal-account mode (no JARVIS_GITHUB_ORG)');
+    console.log('OK: personal-account mode (no GITHUB_ORG)');
     return true;
   }
 
@@ -115,7 +115,8 @@ async function main(): Promise<void> {
   console.log(`Env file: ${envFile}`);
 
   const { token: fileToken, source } = resolvePat(fileEnv);
-  const org = fileEnv.JARVIS_GITHUB_ORG?.trim() ?? '';
+  const org =
+    fileEnv.GITHUB_ORG?.trim() || fileEnv.JARVIS_GITHUB_ORG?.trim() || '';
 
   if (!fileToken) {
     console.error(
@@ -126,7 +127,7 @@ async function main(): Promise<void> {
 
   console.log(`Token source (.env): ${source}`);
   console.log(
-    `Org mode: ${org ? `JARVIS_GITHUB_ORG=${org}` : '(none — repos under PAT user)'}`,
+    `Org mode: ${org ? `GITHUB_ORG=${org}` : '(none — repos under PAT user)'}`,
   );
 
   const shellPat = process.env.GITHUB_PAT?.trim();

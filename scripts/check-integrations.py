@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
-"""Probe Cursor, GitHub PAT, and Vercel connectivity. Prints presence-only env + live HTTP checks."""
+"""Probe GitHub PAT, Vercel, and Cursor Cloud Agents from iyona-backend/.env.
+
+Does not print secrets. Exit 0 if every configured live probe succeeds.
+Usage:
+  python3 scripts/check-integrations.py
+  IYONA_BE_ROOT=/path/to/iyona-backend python3 scripts/check-integrations.py
+"""
 from __future__ import annotations
 
+import base64
 import json
 import os
 import subprocess
 import sys
-import urllib.error
-import urllib.request
 from pathlib import Path
 
 
@@ -24,70 +29,180 @@ def load_dotenv(path: Path) -> dict[str, str]:
     return env
 
 
-def http_probe(url: str, headers: dict[str, str]) -> tuple[int | None, str]:
-    req = urllib.request.Request(url, headers=headers)
+def http_probe(
+    url: str,
+    headers: dict[str, str],
+    method: str = "GET",
+) -> tuple[int | None, str]:
+    # curl uses the macOS cert store; CPython on this machine often does not.
+    cmd = [
+        "curl",
+        "-sS",
+        "-X",
+        method,
+        "--max-time",
+        "15",
+        "-w",
+        "\n%{http_code}",
+    ]
+    for key, value in headers.items():
+        cmd.extend(["-H", f"{key}: {value}"])
+    cmd.append(url)
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            return resp.status, resp.read().decode("utf-8", errors="replace")
-    except urllib.error.HTTPError as exc:
-        return exc.code, exc.read().decode("utf-8", errors="replace")
-    except Exception as exc:  # noqa: BLE001
-        return None, str(exc)
+        completed = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except FileNotFoundError:
+        return None, "curl is not installed"
+    if completed.returncode != 0 and not completed.stdout.strip():
+        return None, (completed.stderr or completed.stdout or "curl failed").strip()[:200]
+    raw = completed.stdout.rstrip("\n")
+    if "\n" not in raw:
+        return None, (completed.stderr or raw or "empty curl response")[:200]
+    body, _, status_s = raw.rpartition("\n")
+    try:
+        return int(status_s), body
+    except ValueError:
+        return None, (raw or completed.stderr)[:200]
+
+
+def json_obj(body: str) -> dict:
+    try:
+        data = json.loads(body)
+        return data if isinstance(data, dict) else {}
+    except json.JSONDecodeError:
+        return {}
+
+
+def ok(label: str, detail: str) -> None:
+    print(f"OK   {label}: {detail}")
+
+
+def fail(label: str, detail: str) -> None:
+    print(f"FAIL {label}: {detail}")
+
+
+def skip(label: str, detail: str) -> None:
+    print(f"SKIP {label}: {detail}")
 
 
 def main() -> int:
-    root = Path(os.environ.get("JARVIS_BE_ROOT", "/home/ubuntu/Jarvis-BE"))
-    env = load_dotenv(root / ".env")
+    root = Path(
+        os.environ.get("IYONA_BE_ROOT")
+        or os.environ.get("JARVIS_BE_ROOT")
+        or Path(__file__).resolve().parent.parent
+    )
+    env_path = root / ".env"
+    env = load_dotenv(env_path)
     for key, value in os.environ.items():
         env.setdefault(key, value)
 
+    print(f"Env file: {env_path} ({'found' if env_path.exists() else 'MISSING'})")
+    print("=== Required integration env (presence only) ===")
     keys = [
         "CURSOR_API_KEY",
         "CURSOR_API_BASE_URL",
         "CURSOR_AGENT_MODEL_ID",
         "GITHUB_PAT",
+        "GITHUB_ORG",
         "JARVIS_GITHUB_TOKEN",
         "JARVIS_GITHUB_ORG",
         "VERCEL_TOKEN",
         "VERCEL_TEAM_ID",
-        "VERCEL_DEPLOYMENT_PROTECTION_BYPASS",
         "GITHUB_CLIENT_ID",
         "GITHUB_CLIENT_SECRET",
     ]
-    print("=== Required integration env (presence only) ===")
     for key in keys:
         value = env.get(key, "")
         if value.strip():
-            print(f"ENV {key}: SET (len={len(value)})")
+            print(f"ENV  {key}: SET (len={len(value)})")
         else:
-            print(f"ENV {key}: MISSING")
+            print(f"ENV  {key}: MISSING")
 
+    failed = 0
     print("\n=== Live probes ===")
+
+    # ── GitHub ────────────────────────────────────────────────────────────
     gh = (env.get("GITHUB_PAT") or env.get("JARVIS_GITHUB_TOKEN") or "").strip()
-    if gh:
-        prefix = f"{gh[:4]}..." if len(gh) >= 4 else "(short)"
-        print(f"GitHub token prefix={prefix}")
-        for scheme in ("Bearer", "token"):
-            code, body = http_probe(
-                "https://api.github.com/user",
+    org = (env.get("GITHUB_ORG") or env.get("JARVIS_GITHUB_ORG") or "").strip()
+    if not gh:
+        fail("GitHub", "GITHUB_PAT is not set")
+        failed += 1
+    else:
+        code, body = http_probe(
+            "https://api.github.com/user",
+            {
+                "Authorization": f"Bearer {gh}",
+                "Accept": "application/vnd.github+json",
+                "X-GitHub-Api-Version": "2022-11-28",
+                "User-Agent": "iyona-health-check",
+            },
+        )
+        data = json_obj(body)
+        login = data.get("login")
+        if code == 200 and login:
+            ok("GitHub /user", f"authenticated as {login}")
+        else:
+            fail(
+                "GitHub /user",
+                f"HTTP {code} {data.get('message') or body[:160]}",
+            )
+            failed += 1
+
+        rl_code, rl_body = http_probe(
+            "https://api.github.com/rate_limit",
+            {
+                "Authorization": f"Bearer {gh}",
+                "Accept": "application/vnd.github+json",
+                "User-Agent": "iyona-health-check",
+            },
+        )
+        remaining = (
+            json_obj(rl_body).get("resources", {}).get("core", {}).get("remaining")
+        )
+        if rl_code == 200 and isinstance(remaining, int):
+            ok("GitHub rate_limit", f"core remaining={remaining}")
+        else:
+            fail("GitHub rate_limit", f"HTTP {rl_code} {rl_body[:160]}")
+            failed += 1
+
+        if org:
+            org_code, org_body = http_probe(
+                f"https://api.github.com/orgs/{org}",
                 {
-                    "Authorization": f"{scheme} {gh}",
+                    "Authorization": f"Bearer {gh}",
                     "Accept": "application/vnd.github+json",
-                    "X-GitHub-Api-Version": "2022-11-28",
-                    "User-Agent": "jarvis-health-check",
+                    "User-Agent": "iyona-health-check",
                 },
             )
-            try:
-                data = json.loads(body)
-                detail = data.get("login") or data.get("message") or "?"
-            except json.JSONDecodeError:
-                detail = body[:120]
-            print(f"GitHub /user ({scheme}): HTTP {code} detail={detail}")
-    else:
-        print("GitHub /user: SKIPPED (no token)")
+            org_data = json_obj(org_body)
+            if org_code == 200:
+                ok("GitHub org", f"{org_data.get('login', org)} reachable")
+            elif org_code == 404 and login and login.lower() == org.lower():
+                fail(
+                    "GitHub org",
+                    f"GITHUB_ORG={org} is the PAT user, not an organization. "
+                    "Unset GITHUB_ORG so repos are created under the user account.",
+                )
+                failed += 1
+            else:
+                fail(
+                    "GitHub org",
+                    f"HTTP {org_code} {org_data.get('message') or org_body[:160]}",
+                )
+                failed += 1
+        else:
+            skip("GitHub org", "GITHUB_ORG unset — repos will be created under the PAT user")
 
+    # ── Vercel ────────────────────────────────────────────────────────────
     vt = (env.get("VERCEL_TOKEN") or "").strip()
-    if vt:
+    if not vt:
+        fail("Vercel", "VERCEL_TOKEN is not set")
+        failed += 1
+    else:
         url = "https://api.vercel.com/v2/user"
         tid = (env.get("VERCEL_TEAM_ID") or "").strip()
         if tid:
@@ -96,79 +211,110 @@ def main() -> int:
             url,
             {
                 "Authorization": f"Bearer {vt}",
-                "User-Agent": "jarvis-health-check",
+                "User-Agent": "iyona-health-check",
             },
         )
-        try:
-            data = json.loads(body)
-            user = data.get("user") or {}
-            detail = (
-                user.get("username")
-                or user.get("email")
-                or data.get("error", {}).get("message")
-                or "?"
-            )
-        except json.JSONDecodeError:
-            detail = body[:120]
-        print(f"Vercel /v2/user: HTTP {code} detail={detail}")
+        data = json_obj(body)
+        user = data.get("user") or {}
+        detail = (
+            user.get("username")
+            or user.get("email")
+            or (data.get("error") or {}).get("message")
+            or body[:160]
+        )
+        if code == 200:
+            ok("Vercel /v2/user", str(detail))
+        else:
+            fail("Vercel /v2/user", f"HTTP {code} {detail}")
+            failed += 1
 
+        dep_url = "https://api.vercel.com/v6/deployments?limit=1"
+        if tid:
+            dep_url += f"&teamId={tid}"
         dep_code, dep_body = http_probe(
-            "https://api.vercel.com/v6/deployments?limit=1",
+            dep_url,
             {
                 "Authorization": f"Bearer {vt}",
-                "User-Agent": "jarvis-health-check",
+                "User-Agent": "iyona-health-check",
             },
         )
-        try:
-            dep_data = json.loads(dep_body)
+        dep_data = json_obj(dep_body)
+        if dep_code == 200:
             deps = dep_data.get("deployments") or []
-            dep_detail = f"deployments_count={len(deps)}"
-        except json.JSONDecodeError:
-            dep_detail = dep_body[:120]
-        print(f"Vercel /v6/deployments: HTTP {dep_code} detail={dep_detail}")
-    else:
-        print("Vercel /v2/user: SKIPPED (no token)")
+            ok("Vercel /v6/deployments", f"reachable (sample={len(deps)})")
+        else:
+            err = (dep_data.get("error") or {}).get("message") or dep_body[:160]
+            fail("Vercel /v6/deployments", f"HTTP {dep_code} {err}")
+            failed += 1
 
-    ck = (env.get("CURSOR_API_KEY") or "").strip()
-    if ck:
-        base = (env.get("CURSOR_API_BASE_URL") or "https://api.cursor.com").rstrip("/")
-        code, body = http_probe(
-            f"{base}/v1/agents?limit=1",
-            {
-                "Authorization": f"Bearer {ck}",
-                "Content-Type": "application/json",
-                "User-Agent": "jarvis-health-check",
-            },
-        )
-        try:
-            data = json.loads(body)
-            if isinstance(data, dict) and "agents" in data:
-                detail = f"agents_count={len(data.get('agents') or [])}"
-            elif isinstance(data, dict):
-                detail = data.get("message") or data.get("error") or str(list(data.keys())[:4])
+        if tid:
+            team_code, team_body = http_probe(
+                f"https://api.vercel.com/v2/teams/{tid}",
+                {
+                    "Authorization": f"Bearer {vt}",
+                    "User-Agent": "iyona-health-check",
+                },
+            )
+            team_data = json_obj(team_body)
+            name = team_data.get("name") or team_data.get("slug")
+            if team_code == 200 and name:
+                ok("Vercel team", str(name))
             else:
-                detail = str(data)[:120]
-        except json.JSONDecodeError:
-            detail = body[:120]
-        print(f"Cursor GET /v1/agents: HTTP {code} detail={detail}")
-        model = (env.get("CURSOR_AGENT_MODEL_ID") or "composer-2").strip()
-        print(f"Cursor model configured: {model}")
+                fail(
+                    "Vercel team",
+                    f"HTTP {team_code} {(team_data.get('error') or {}).get('message') or team_body[:160]}",
+                )
+                failed += 1
+        else:
+            skip(
+                "Vercel team",
+                "VERCEL_TEAM_ID unset — deploys will use the token's personal account",
+            )
+
+    # ── Cursor Cloud Agents ───────────────────────────────────────────────
+    ck = (env.get("CURSOR_API_KEY") or "").strip()
+    if not ck:
+        fail("Cursor", "CURSOR_API_KEY is not set")
+        failed += 1
     else:
-        print("Cursor API: SKIPPED (no key)")
+        base = (env.get("CURSOR_API_BASE_URL") or "https://api.cursor.com").rstrip(
+            "/"
+        )
+        basic = "Basic " + base64.b64encode(f"{ck}:".encode("utf-8")).decode("ascii")
+        headers = {
+            "Authorization": basic,
+            "Accept": "application/json",
+            "User-Agent": "iyona-health-check",
+        }
+        code, body = http_probe(f"{base}/v1/me", headers)
+        if code == 404:
+            code, body = http_probe(f"{base}/v1/models", headers)
+            label = "Cursor GET /v1/models"
+        else:
+            label = "Cursor GET /v1/me"
+        data = json_obj(body)
+        if code == 200:
+            who = (
+                data.get("userEmail")
+                or data.get("email")
+                or data.get("user_email")
+                or "authenticated"
+            )
+            ok(label, str(who))
+        else:
+            fail(
+                label,
+                f"HTTP {code} {data.get('message') or data.get('error') or body[:160]}",
+            )
+            failed += 1
+        model = (env.get("CURSOR_AGENT_MODEL_ID") or "composer-2.5").strip()
+        print(f"INFO Cursor model configured: {model}")
 
-    print("\n=== PM2 ===")
-    try:
-        out = subprocess.check_output(["pm2", "jlist"], text=True)
-        for proc in json.loads(out):
-            if proc.get("name") != "jarvis-dev":
-                continue
-            pm2_env = proc.get("pm2_env", {})
-            print("status=", pm2_env.get("status"))
-            print("restarts=", pm2_env.get("restart_time"))
-            print("node=", pm2_env.get("node_version"))
-    except Exception as exc:  # noqa: BLE001
-        print("pm2 check failed:", exc)
-
+    print("\n=== Summary ===")
+    if failed:
+        print(f"{failed} check(s) failed")
+        return 1
+    print("All live probes passed")
     return 0
 
 

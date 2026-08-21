@@ -27,7 +27,7 @@ jobs:
           # (e.g. ec2-1-2-3-4.eu-west-3.compute.amazonaws.com). Falls back to the current Iyona host.
           EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
-          EC2_HOST="${EC2_HOST:-ec2-13-38-216-127.eu-west-3.compute.amazonaws.com}"
+          EC2_HOST="${EC2_HOST:-ec2-51-44-129-116.eu-west-3.compute.amazonaws.com}"
           echo "SSH target: ubuntu@${EC2_HOST}"
 
           # Forward only the variables we need into the remote shell. Note
