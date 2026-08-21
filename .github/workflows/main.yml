@@ -1,0 +1,149 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup SSH Agent (for EC2 access)
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to EC2
+        env:
+          DEPLOY_SHA: ${{ github.sha }}
+          DEPLOY_REF: ${{ github.ref_name }}
+          # Set repo secret EC2_HOST after stop/start if the public DNS/IP changed
+          # (e.g. ec2-1-2-3-4.eu-west-3.compute.amazonaws.com). Falls back to legacy host.
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+        run: |
+          EC2_HOST="${EC2_HOST:-ec2-13-38-36-4.eu-west-3.compute.amazonaws.com}"
+          echo "SSH target: ubuntu@${EC2_HOST}"
+
+          # Forward only the variables we need into the remote shell. Note
+          # the **quoted** heredoc (`'EOF'`) so $… inside the script is
+          # expanded on EC2, not by the GitHub runner.
+          ssh -o StrictHostKeyChecking=no \
+              -o ConnectTimeout=30 \
+              -o SendEnv=DEPLOY_SHA \
+              -o SendEnv=DEPLOY_REF \
+              "ubuntu@${EC2_HOST}" \
+              "DEPLOY_SHA='$DEPLOY_SHA' DEPLOY_REF='$DEPLOY_REF' bash -s" << 'EOF'
+            set -euo pipefail
+
+            echo "================================"
+            echo "Starting Deployment"
+            echo "Commit:  $DEPLOY_SHA"
+            echo "Branch:  $DEPLOY_REF"
+            echo "================================"
+
+            cd ~/Jarvis-BE
+
+            # ── 1. Snapshot the previous build for rollback ──────────────
+            #
+            # If the new build crashes on boot we restore this and restart,
+            # so dev.jarvis.site stays on the last-known-good revision
+            # instead of going 502.
+            PREV_SHA="$(git rev-parse HEAD)"
+            rm -rf dist.prev
+            if [ -d dist ]; then
+              cp -a dist dist.prev
+            fi
+
+            # ── 2. Pull and build the new revision ───────────────────────
+            git fetch origin
+            git reset --hard "$DEPLOY_SHA"
+            npm ci
+            npm run build
+
+            # Sanity check: nest build must produce dist/main.js. If it
+            # ever regresses to dist/src/main.js (the bug PR #18 fixed),
+            # fail here instead of letting PM2 crash-loop.
+            if [ ! -f dist/main.js ]; then
+              echo "❌ build did not produce dist/main.js"
+              ls -la dist || true
+              exit 1
+            fi
+
+            # ── 3. (Re)start under PM2 from the in-repo ecosystem file ───
+            #
+            # `startOrReload` is idempotent: it creates the app if missing,
+            # or reloads it (re-reading script path from the manifest) if
+            # already running. This means a previous bad `pm2 start … main.js`
+            # cannot pin us to the wrong path forever.
+            COMMIT_SHA="$DEPLOY_SHA" \
+            GIT_BRANCH="$DEPLOY_REF" \
+            BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+              pm2 startOrReload ecosystem.config.cjs \
+                --only jarvis-dev \
+                --update-env \
+                --env production
+            pm2 save
+
+            # ── 4. Health probe ──────────────────────────────────────────
+            #
+            # Poll /api/v1/health until it returns 2xx, up to ~30s. PM2
+            # will mark the app `online` the instant Node forks, so we
+            # cannot trust PM2 status alone — we have to actually hit the
+            # HTTP layer.
+            HEALTH_URL="http://localhost:4000/api/v1/health"
+            HEALTHY=0
+            for i in $(seq 1 30); do
+              if curl -fsS --max-time 2 "$HEALTH_URL" >/dev/null 2>&1; then
+                echo "✅ healthy after ${i}s"
+                HEALTHY=1
+                break
+              fi
+              sleep 1
+            done
+
+            if [ "$HEALTHY" -ne 1 ]; then
+              echo "❌ health check failed — last 80 lines of stderr:"
+              pm2 logs jarvis-dev --err --lines 80 --nostream || true
+
+              # ── 5. Roll back to the previous build ─────────────────────
+              if [ -d dist.prev ] && [ -n "$PREV_SHA" ]; then
+                echo "↩️  rolling back to $PREV_SHA"
+                git reset --hard "$PREV_SHA"
+                rm -rf dist
+                mv dist.prev dist
+                COMMIT_SHA="$PREV_SHA" \
+                GIT_BRANCH="$DEPLOY_REF" \
+                BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+                  pm2 startOrReload ecosystem.config.cjs \
+                    --only jarvis-dev \
+                    --update-env \
+                    --env production
+                pm2 save
+                echo "↩️  rollback complete; site is serving $PREV_SHA"
+              else
+                echo "⚠️  no dist.prev to roll back to; site is down"
+              fi
+
+              exit 1
+            fi
+
+            # Cleanup the rollback snapshot only on success
+            rm -rf dist.prev
+
+            echo "================================"
+            echo "Deployment Complete"
+            echo "Server running commit:"
+            git rev-parse HEAD
+            echo "================================"
+          EOF
+
+      - name: Cleanup SSH Agent
+        if: always()
+        run: |
+          eval "$(ssh-agent -k)" || true

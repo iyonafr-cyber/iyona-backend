@@ -1,0 +1,210 @@
+/*
+ * Jarvis UI Kit — Design Tokens
+ * This @theme block is the single source of truth for colors, radius, and spacing.
+ * The generation pipeline substitutes {{PRIMARY}}, {{SECONDARY}}, {{ACCENT}} at
+ * build time with project-specific values (or falls back to the defaults below).
+ */
+
+@theme {
+  /* ── Primary palette ─────────────────────────────────────────── */
+  --color-primary-50:  {{PRIMARY_50}};
+  --color-primary-100: {{PRIMARY_100}};
+  --color-primary-200: {{PRIMARY_200}};
+  --color-primary-300: {{PRIMARY_300}};
+  --color-primary-400: {{PRIMARY_400}};
+  --color-primary-500: {{PRIMARY_500}};
+  --color-primary-600: {{PRIMARY_600}};
+  --color-primary-700: {{PRIMARY_700}};
+  --color-primary-800: {{PRIMARY_800}};
+  --color-primary-900: {{PRIMARY_900}};
+  --color-primary-950: {{PRIMARY_950}};
+
+  /* ── Secondary palette ───────────────────────────────────────── */
+  --color-secondary-50:  {{SECONDARY_50}};
+  --color-secondary-100: {{SECONDARY_100}};
+  --color-secondary-200: {{SECONDARY_200}};
+  --color-secondary-300: {{SECONDARY_300}};
+  --color-secondary-400: {{SECONDARY_400}};
+  --color-secondary-500: {{SECONDARY_500}};
+  --color-secondary-600: {{SECONDARY_600}};
+  --color-secondary-700: {{SECONDARY_700}};
+  --color-secondary-800: {{SECONDARY_800}};
+  --color-secondary-900: {{SECONDARY_900}};
+  --color-secondary-950: {{SECONDARY_950}};
+
+  /* ── Accent palette ──────────────────────────────────────────── */
+  --color-accent-50:  {{ACCENT_50}};
+  --color-accent-100: {{ACCENT_100}};
+  --color-accent-200: {{ACCENT_200}};
+  --color-accent-300: {{ACCENT_300}};
+  --color-accent-400: {{ACCENT_400}};
+  --color-accent-500: {{ACCENT_500}};
+  --color-accent-600: {{ACCENT_600}};
+  --color-accent-700: {{ACCENT_700}};
+  --color-accent-800: {{ACCENT_800}};
+  --color-accent-900: {{ACCENT_900}};
+  --color-accent-950: {{ACCENT_950}};
+
+  /* ── Neutral surface (style-specific: neutral / warm / cool) ──── */
+  --color-surface-50:  {{SURFACE_50}};
+  --color-surface-100: {{SURFACE_100}};
+  --color-surface-200: {{SURFACE_200}};
+  --color-surface-300: {{SURFACE_300}};
+  --color-surface-400: {{SURFACE_400}};
+  --color-surface-500: {{SURFACE_500}};
+  --color-surface-600: {{SURFACE_600}};
+  --color-surface-700: {{SURFACE_700}};
+  --color-surface-800: {{SURFACE_800}};
+  --color-surface-900: {{SURFACE_900}};
+  --color-surface-950: {{SURFACE_950}};
+
+  /* ── Semantic ────────────────────────────────────────────────── */
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-error:   #dc2626;
+  --color-info:    #2563eb;
+
+  /* ── Radius (style-specific corner language) ─────────────────── */
+  --radius-sm:  {{RADIUS_SM}};
+  --radius-md:  {{RADIUS_MD}};
+  --radius-lg:  {{RADIUS_LG}};
+  --radius-xl:  {{RADIUS_XL}};
+  --radius-full: 9999px;
+
+  /* ── Shadows (style-specific elevation) ──────────────────────── */
+  --shadow-sm:  {{SHADOW_SM}};
+  --shadow-md:  {{SHADOW_MD}};
+  --shadow-lg:  {{SHADOW_LG}};
+  --shadow-xl:  {{SHADOW_XL}};
+
+  /* ── Typography (style-specific system-font stacks) ──────────────
+   * The generation pipeline substitutes {{FONT_SANS}} / {{FONT_DISPLAY}}
+   * per project with a design-style stack. All stacks are OS/system fonts
+   * (no webfont download), so they resolve instantly and fall back
+   * gracefully. Tailwind v4 uses --font-sans as the default `html` family.
+   * Do NOT override the font-family in the app's index.css — the kit owns it. */
+  --font-sans: {{FONT_SANS}};
+  --font-display: {{FONT_DISPLAY}};
+  --default-font-family: var(--font-sans);
+}
+
+/*
+ * Base layer — light/dark aware. `color-scheme` makes native controls, form
+ * widgets, and scrollbars follow the OS theme so `dark:` utilities look right.
+ */
+@layer base {
+  :root {
+    color-scheme: light dark;
+  }
+
+  /* Apple-grade text rendering: crisp antialiasing + optimized legibility. */
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* The Apple signature is in the details: SF Pro Display for headings, a
+   * heavier weight, tight negative tracking, snug line-height, and balanced
+   * wrapping. Sizes stay up to each design; these defaults give the "feel". */
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    font-weight: {{HEAD_WEIGHT}};
+    letter-spacing: {{HEAD_TRACKING}};
+    line-height: {{HEAD_LINE}};
+    text-wrap: balance;
+  }
+  h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.014em;
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+}
+
+/*
+ * Attractive gradient backgrounds — on-brand (built from the project's own
+ * primary/accent tokens) so heroes and CTA sections have real visual weight
+ * instead of a flat colour. Opt-in utility classes; the page body stays neutral.
+ *   .bg-gradient-mesh   — soft multi-point Apple-style hero mesh
+ *   .bg-gradient-brand  — bold primary→accent diagonal (CTA bands)
+ *   .bg-gradient-subtle — barely-there section tint
+ *   .text-gradient      — primary→accent clipped headline text
+ */
+@layer utilities {
+  .bg-gradient-brand {
+    background-image: linear-gradient(135deg, var(--color-primary-500), var(--color-accent-500));
+  }
+  .bg-gradient-subtle {
+    background-image: linear-gradient(180deg, var(--color-primary-50), var(--color-surface-50));
+  }
+  .bg-gradient-mesh {
+    background-color: var(--color-surface-50);
+    background-image:
+      radial-gradient(at 18% 18%, color-mix(in oklab, var(--color-primary-500) 24%, transparent) 0, transparent 50%),
+      radial-gradient(at 82% 12%, color-mix(in oklab, var(--color-accent-500) 22%, transparent) 0, transparent 46%),
+      radial-gradient(at 62% 82%, color-mix(in oklab, var(--color-primary-400) 18%, transparent) 0, transparent 52%);
+  }
+  .text-gradient {
+    background-image: linear-gradient(120deg, var(--color-primary-600), var(--color-accent-500));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* Dark-mode variants follow the OS theme (matches the kit's dark: strategy). */
+@media (prefers-color-scheme: dark) {
+  .bg-gradient-subtle {
+    background-image: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--color-primary-500) 14%, var(--color-surface-950)),
+      var(--color-surface-950)
+    );
+  }
+  .bg-gradient-mesh {
+    background-color: var(--color-surface-950);
+  }
+}
+
+/*
+ * Modal (<dialog class="ui-modal">) centering.
+ * A native modal <dialog> is centered by the UA rule `dialog { margin: auto }`,
+ * but Tailwind v4 Preflight resets `margin: 0` on every element (`*`), which
+ * wipes that out and drops the dialog into the top-left corner. Restore the
+ * centering explicitly (fixed + inset:0 + margin:auto) so it works regardless
+ * of Preflight. Width still comes from the component's `w-full` + `max-w-*`.
+ */
+.ui-modal {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  height: fit-content;
+  max-height: calc(100dvh - 2rem);
+  overflow: auto;
+}
+
+/*
+ * Modal (<dialog class="ui-modal">) enter animation — self-contained so the kit
+ * does not depend on the tailwindcss-animate / tw-animate-css plugin.
+ */
+@keyframes ui-modal-in {
+  from { opacity: 0; transform: translateY(4px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+.ui-modal[open] {
+  animation: ui-modal-in 200ms ease-out;
+}
+
+/* Respect users who prefer reduced motion: no modal animation. */
+@media (prefers-reduced-motion: reduce) {
+  .ui-modal[open] {
+    animation: none;
+  }
+}
