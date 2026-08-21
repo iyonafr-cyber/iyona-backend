@@ -30,10 +30,12 @@ DNS A record already points at the Elastic IP. Nginx terminates TLS and proxies 
 
 Security group `launch-wizard-1` allows TCP **22 / 80 / 443** from `0.0.0.0/0`. Do not expose **4000** publicly; nginx is the front door.
 
-Still do:
+GitHub Actions (`Deploy to EC2`) repo secrets:
 
-- GitHub → `iyona-backend` → **Settings → Secrets → Actions** → set `EC2_HOST` to `ec2-51-44-129-116.eu-west-3.compute.amazonaws.com`.
-- Atlas **Network Access**: allow `51.44.129.116`.
+- `SSH_PRIVATE_KEY` — contents of `iyona-pem.pem`
+- `EC2_HOST` — `ec2-51-44-129-116.eu-west-3.compute.amazonaws.com`
+
+Atlas **Network Access** must allow `51.44.129.116`.
 
 ## First boot (already done)
 

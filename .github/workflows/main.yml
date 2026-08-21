@@ -41,6 +41,12 @@ jobs:
               "DEPLOY_SHA='$DEPLOY_SHA' DEPLOY_REF='$DEPLOY_REF' bash -s" << 'EOF'
             set -euo pipefail
 
+            # Non-interactive SSH does not load ~/.bashrc, so nvm (node/npm/pm2)
+            # is not on PATH unless we source it here.
+            export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+            # shellcheck disable=SC1091
+            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+
             echo "================================"
             echo "Starting Deployment"
             echo "Commit:  $DEPLOY_SHA"
