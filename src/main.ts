@@ -70,6 +70,8 @@ async function bootstrap() {
   // Configure allowed origins for CORS
   // When credentials: true, you cannot use origin: '*'
   const allowedOrigins = [
+    'https://iyona-front.vercel.app',
+    'https://iyona-admin.vercel.app',
     'https://jarvis-fe-nine.vercel.app',
     'https://jarvis-admin-one.vercel.app',
     'https://uat.jarvis.site',
