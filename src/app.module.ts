@@ -29,9 +29,6 @@ import { AdminCreditsModule } from './admin/credits/admin-credits.module';
 import { AdminDashboardModule } from './admin/dashboard/admin-dashboard.module';
 import { AdminSettingsModule } from './admin/settings/admin-settings.module';
 import { AdminManualSubscriptionsModule } from './admin/manual-subscriptions/admin-manual-subscriptions.module';
-import { OrganizationsModule } from './organizations/organizations.module';
-import { ApiKeysModule } from './api-keys/api-keys.module';
-import { WebhooksModule } from './webhooks/webhooks.module';
 import { MigrationsModule } from './migrations/migrations.module';
 import { SpecBuildModule } from './spec-build/spec-build.module';
 import { AiProviderKeysModule } from './ai-provider-keys/ai-provider-keys.module';
@@ -139,10 +136,7 @@ import { PreflightModule } from './preflight/preflight.module';
     AdminDashboardModule,
     AdminSettingsModule,
     AdminManualSubscriptionsModule,
-    OrganizationsModule,
     MigrationsModule,
-    ApiKeysModule,
-    WebhooksModule,
     SpecBuildModule,
     PreflightModule,
   ],

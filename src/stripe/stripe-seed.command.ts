@@ -1,11 +1,14 @@
 import { NestFactory } from '@nestjs/core';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { StripeModule } from './stripe.module';
+import { StripeService } from './stripe.service';
 import { StripeSeedService } from './stripe-seed.service';
 
+// Minimal module: the seeder only needs StripeService (no Auth/User/DB),
+// so we avoid importing the full StripeModule and its module graph.
 @Module({
-  imports: [ConfigModule.forRoot(), StripeModule],
+  imports: [ConfigModule.forRoot()],
+  providers: [StripeService, StripeSeedService],
 })
 class SeedAppModule {}
 

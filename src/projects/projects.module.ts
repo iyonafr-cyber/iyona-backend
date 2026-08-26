@@ -48,8 +48,6 @@ import { S3Module } from 'src/s3/s3.module';
 import { VercelModule } from 'src/vercel/vercel.module';
 import { CreditsModule } from 'src/credits/credits.module';
 import { SupabaseModule } from 'src/supabase/supabase.module';
-import { WebhooksModule } from 'src/webhooks/webhooks.module';
-import { OrganizationsModule } from 'src/organizations/organizations.module';
 import { RepoModule } from 'src/repo/repo.module';
 import { CursorModule } from 'src/cursor/cursor.module';
 import { WorkspaceController } from './workspace.controller';
@@ -77,8 +75,6 @@ import { RevisionsModule } from 'src/revisions/revisions.module';
     S3Module,
     VercelModule,
     SupabaseModule,
-    forwardRef(() => WebhooksModule),
-    forwardRef(() => OrganizationsModule),
     RepoModule,
     CursorModule,
     forwardRef(() => RevisionsModule),

@@ -12,6 +12,7 @@ import {
   HttpCode,
   HttpStatus,
   HttpException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { ProjectPatchService } from './project-patch.service';
@@ -59,10 +60,6 @@ import { CreditAction } from '../credits/decorator/credit-action.decorator';
 import { RemixProjectDto, SetPublicProjectDto } from './dto/public-project.dto';
 import { ProjectErrorsService } from './project-errors.service';
 import { ProjectAccessService } from './project-access.service';
-import {
-  FeatureFlagsGuard,
-  RequireFeatureFlag,
-} from '../organizations/feature-flags.guard';
 import {
   LogProjectErrorDto,
   ProjectErrorDto,
@@ -311,18 +308,19 @@ export class ProjectsController {
     return { data: project };
   }
 
-  // PR-1.8: built-app Stripe is gated behind the `builtAppStripe` org
-  // feature flag for launch. Reads (`GET payment-config`) intentionally
-  // stay open so previously-configured projects don't break in the UI;
-  // mutations require the workspace to opt in.
-  @UseGuards(FeatureFlagsGuard)
-  @RequireFeatureFlag('builtAppStripe')
+  // PR-1.8: built-app Stripe is off by default and enabled globally via the
+  // BUILT_APP_STRIPE_ENABLED env flag. Reads (`GET payment-config`)
+  // intentionally stay open so previously-configured projects don't break in
+  // the UI; mutations require the feature to be enabled.
   @Put(':id/payment-config')
   async updatePaymentConfig(
     @Param('id') id: string,
     @Body() updatePaymentConfigDto: UpdatePaymentConfigDto,
     @CurrentUser() user: CurrentUserPayload,
   ): Promise<{ data: UserProjectDto }> {
+    if (process.env.BUILT_APP_STRIPE_ENABLED !== 'true') {
+      throw new ForbiddenException('Built-app Stripe is not enabled.');
+    }
     const project = await this.projectSettingsService.updatePaymentConfig(
       id,
       user.userId,
@@ -331,13 +329,14 @@ export class ProjectsController {
     return { data: project };
   }
 
-  @UseGuards(FeatureFlagsGuard)
-  @RequireFeatureFlag('builtAppStripe')
   @Post(':id/payment-config/validate')
   async validateStripeConnection(
     @Param('id') id: string,
     @CurrentUser() user: CurrentUserPayload,
   ): Promise<{ valid: boolean; message: string }> {
+    if (process.env.BUILT_APP_STRIPE_ENABLED !== 'true') {
+      throw new ForbiddenException('Built-app Stripe is not enabled.');
+    }
     return this.projectSettingsService.validateStripeConnection(
       id,
       user.userId,

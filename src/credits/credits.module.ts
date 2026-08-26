@@ -20,7 +20,6 @@ import { CreditsSubscriptionService } from './credits-subscription.service';
 import { CreditsGuard } from './guards/credits.guard';
 import { CreditsController } from './credits.controller';
 import { StripeWebhookController } from './stripe-webhook.controller';
-import { OrganizationsModule } from '../organizations/organizations.module';
 
 /**
  * CreditsModule owns every provider instance (OpenAI + Anthropic via
@@ -40,7 +39,6 @@ import { OrganizationsModule } from '../organizations/organizations.module';
     forwardRef(() => StripeModule),
     ModelsModule,
     AiProviderKeysModule,
-    forwardRef(() => OrganizationsModule),
   ],
   providers: [
     PricingService,
