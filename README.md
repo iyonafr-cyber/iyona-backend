@@ -1,6 +1,6 @@
-# jarvis-backend
+# iyona-backend
 
-NestJS 11 API for **Jarvis AI** — a Lovable / Bolt.new-style AI app builder. Owns auth, projects, AI code generation, the patch engine, revisions/deploy, Stripe billing, credits, the model catalog, organizations, webhooks, and the admin APIs. Each generated app is a full self-contained React (Vite) repository owned end-to-end by the AI (no pinned scaffold tarball), with a locked shadcn-style UI kit injected at deploy.
+NestJS 11 API for **Iyona AI** — a Lovable / Bolt.new-style AI app builder. Owns auth, projects, AI code generation, the patch engine, revisions/deploy, Stripe billing, credits, the model catalog, organizations, webhooks, and the admin APIs. Each generated app is a full self-contained React (Vite) repository owned end-to-end by the AI (no pinned scaffold tarball), with a locked shadcn-style UI kit injected at deploy.
 
 ## Stack
 
@@ -31,4 +31,4 @@ Useful scripts: `npm run stripe:seed`, `npm run promote:admin`, `npm run cursor:
 
 ## Orientation
 
-Read [`AGENTS.md`](./AGENTS.md) first, then the detailed context in [`.cursor/APP_CONTEXT.md`](./.cursor/APP_CONTEXT.md) and [`.cursor/rules/about-jarvis.mdc`](./.cursor/rules/about-jarvis.mdc) (modules, constraints, flows). Sibling orientation: [`../jarvis-front/.cursor/APP_CONTEXT.md`](../jarvis-front/.cursor/APP_CONTEXT.md), [`../jarvis-admin/.cursor/APP_CONTEXT.md`](../jarvis-admin/.cursor/APP_CONTEXT.md). For code navigation use the graphify graph: [`graphify-out/GRAPH_REPORT.md`](./graphify-out/GRAPH_REPORT.md) and [`.cursor/skills/graphify/SKILL.md`](./.cursor/skills/graphify/SKILL.md). EC2/deploy notes live in `../AWS/README-EC2.md`.
+Read [`AGENTS.md`](./AGENTS.md) first, then the detailed context in [`.cursor/APP_CONTEXT.md`](./.cursor/APP_CONTEXT.md) and [`.cursor/rules/about-iyona.mdc`](./.cursor/rules/about-iyona.mdc) (modules, constraints, flows). Sibling orientation: [`../iyona-front/.cursor/APP_CONTEXT.md`](../iyona-front/.cursor/APP_CONTEXT.md), [`../iyona-admin/.cursor/APP_CONTEXT.md`](../iyona-admin/.cursor/APP_CONTEXT.md). For code navigation use the graphify graph: [`graphify-out/GRAPH_REPORT.md`](./graphify-out/GRAPH_REPORT.md) and [`.cursor/skills/graphify/SKILL.md`](./.cursor/skills/graphify/SKILL.md). EC2/deploy notes live in `../AWS/README-EC2.md`.
