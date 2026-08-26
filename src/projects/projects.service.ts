@@ -8,7 +8,6 @@ import {
   Optional,
   forwardRef,
 } from '@nestjs/common';
-import { WebhooksService } from 'src/webhooks/webhooks.service';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, HydratedDocument, Types } from 'mongoose';
 import { PatchService } from '../patch/patch.service';
@@ -96,9 +95,6 @@ export class ProjectsService {
     // race two flows against the same project state. A distinct key namespace
     // from RepoService's repo lock so FSM writes don't contend with commits.
     private readonly lock: DistributedLockService,
-    @Optional()
-    @Inject(forwardRef(() => WebhooksService))
-    private readonly webhooksService?: WebhooksService,
   ) {}
 
   /** Serialize project-state mutations under a cross-replica per-project lock. */
@@ -109,41 +105,6 @@ export class ProjectsService {
     return this.lock.runExclusive(`project-fsm:${projectId}`, fn, {
       waitMs: 30_000,
     });
-  }
-
-  /**
-   * Fire a webhook event for a project owner. Always fire-and-forget; we
-   * never want a webhook misconfig to block the API path. Errors are logged
-   * with structured fields so ops can detect delivery failures in log search.
-   */
-  private emitWebhook(
-    userId: string,
-    event:
-      | 'project.created'
-      | 'project.updated'
-      | 'project.deleted'
-      | 'project.restored'
-      | 'project.deployed'
-      | 'patch.applied'
-      | 'build.succeeded'
-      | 'build.failed',
-    payload: Record<string, unknown>,
-  ): void {
-    if (!this.webhooksService) return;
-    void this.webhooksService
-      .enqueueForUser(userId, event, payload)
-      .catch((err: unknown) => {
-        this.logger.error(
-          {
-            event: 'webhook.enqueue_failed',
-            webhookEvent: event,
-            userId,
-            projectId: payload['projectId'],
-            error: err instanceof Error ? err.message : String(err),
-          },
-          `[Webhook] Failed to enqueue "${event}" for user ${userId}`,
-        );
-      });
   }
 
   /**
@@ -240,11 +201,6 @@ export class ProjectsService {
           rest.initialPrompt,
         );
       }
-
-      this.emitWebhook(userId, 'project.created', {
-        projectId: String(project._id),
-        name: project.name,
-      });
 
       return Object.assign(this.mapper.toProjectDto(project), {
         accessRole: 'owner' as ProjectAccessRole,
@@ -548,10 +504,6 @@ export class ProjectsService {
       if (!project) {
         throw new NotFoundException(`Project with ID ${id} not found`);
       }
-      this.emitWebhook(userId, 'project.updated', {
-        projectId: id,
-        changedFields: Object.keys(updateData ?? {}),
-      });
       return this.mapper.toProjectDto(project);
     } catch (error) {
       if (
@@ -597,12 +549,6 @@ export class ProjectsService {
         throw new NotFoundException('Project not found');
       }
 
-      this.emitWebhook(userId, 'project.deleted', {
-        projectId: id,
-        softDelete: true,
-        deletedAt: now.toISOString(),
-        purgeAfterDays: SOFT_DELETE_RETENTION_DAYS,
-      });
     } catch (error) {
       if (
         error instanceof NotFoundException ||
@@ -642,7 +588,6 @@ export class ProjectsService {
       }
       project.deletedAt = null;
       await project.save();
-      this.emitWebhook(userId, 'project.restored', { projectId: id });
       return this.mapper.toProjectDto(project);
     } catch (error) {
       if (
@@ -1303,13 +1248,6 @@ export class ProjectsService {
       return;
     }
 
-    if (!alreadyFinalized) {
-      this.emitWebhook(ownerUserId, 'project.deployed', {
-        projectId,
-        previewUrl: verifiedPreviewUrl ?? previewUrl,
-        deploymentId,
-      });
-    }
   }
 
   /**

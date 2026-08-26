@@ -50,43 +50,6 @@ export class MigrationsRunner implements OnModuleInit {
   }
 
   private async runAll(): Promise<void> {
-    await this.runMigration('001-backfill-org-seat-count', async () => {
-      // Collection names match the explicit `@Schema({ collection: ... })`
-      // values on Organization / OrgMember; never trust Mongoose's
-      // auto-pluralisation here because the entity defs override it.
-      const orgs = this.conn.collection('organizations');
-      const members = this.conn.collection('org_members');
-      const cursor = orgs.find(
-        { $or: [{ seatCount: { $exists: false } }, { seatCount: null }] },
-        { projection: { _id: 1 } },
-      );
-      while (await cursor.hasNext()) {
-        const o = await cursor.next();
-        if (!o?._id) continue;
-        const count = await members.countDocuments({ orgId: o._id });
-        await orgs.updateOne(
-          { _id: o._id },
-          { $set: { seatCount: Math.max(count, 1) } },
-        );
-      }
-    });
-
-    await this.runMigration('002-default-feature-flags-array', async () => {
-      const orgs = this.conn.collection('organizations');
-      await orgs.updateMany(
-        { featureFlags: { $exists: false } },
-        { $set: { featureFlags: [] } },
-      );
-    });
-
-    await this.runMigration('003-default-sso-fields', async () => {
-      const orgs = this.conn.collection('organizations');
-      await orgs.updateMany(
-        { ssoRequired: { $exists: false } },
-        { $set: { ssoRequired: false } },
-      );
-    });
-
     await this.runMigration('004-customdomain-sparse-unique', async () => {
       // Build a sparse unique index on `customDomain`. We can't blindly
       // call createIndex because legacy data may already contain

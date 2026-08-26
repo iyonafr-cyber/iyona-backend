@@ -163,20 +163,6 @@ export class User extends Document {
   /** Absolute expiry of the pending password-reset token. */
   @Prop({ type: Date, default: null })
   passwordResetTokenExpiresAt?: Date | null;
-
-  /**
-   * E8 — currently active organization (a.k.a. workspace). Set by the
-   * org switcher and used by all collaboration-aware endpoints to
-   * scope reads/writes. Null for users who haven't been provisioned
-   * an org yet (lazy migration on first hit of an org-aware endpoint
-   * spins up a personal org and back-fills this).
-   */
-  @Prop({
-    type: MongooseSchema.Types.ObjectId,
-    ref: 'Organization',
-    default: null,
-  })
-  currentOrgId?: Types.ObjectId | null;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

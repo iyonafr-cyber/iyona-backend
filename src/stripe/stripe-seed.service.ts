@@ -56,7 +56,7 @@ export interface SubscriptionPackageSummary {
  * Idempotent seed for Stripe Products/Prices used by the credit system.
  *
  * Two families of objects are written:
- *   1. Subscription plans (free, starter, builder, pro, elite) — one
+ *   1. Subscription plans (free, starter, builder, pro) — one
  *      monthly price + one yearly price each. Product metadata carries
  *      `plan_id` and the unified `credits` value so the webhook can
  *      grant the right amount without looking up this file.
@@ -202,7 +202,7 @@ export class StripeSeedService {
 
     const price = await stripe.prices.create({
       product: productId,
-      currency: 'eur',
+      currency: 'usd',
       unit_amount: plan.monthlyPriceCents,
       recurring: { interval: 'month' },
       metadata: {
@@ -217,7 +217,7 @@ export class StripeSeedService {
     });
 
     this.logger.log(
-      `Created monthly price for "${plan.name}" — ${price.id} (€${(plan.monthlyPriceCents / 100).toFixed(2)}/mo)`,
+      `Created monthly price for "${plan.name}" — ${price.id} ($${(plan.monthlyPriceCents / 100).toFixed(2)}/mo)`,
     );
     return { priceId: price.id, status: 'created' };
   }
@@ -236,7 +236,7 @@ export class StripeSeedService {
 
     const price = await stripe.prices.create({
       product: productId,
-      currency: 'eur',
+      currency: 'usd',
       unit_amount: plan.yearlyTotalCents,
       recurring: { interval: 'year' },
       metadata: {
@@ -248,7 +248,7 @@ export class StripeSeedService {
     });
 
     this.logger.log(
-      `Created yearly price for "${plan.name}" — ${price.id} (€${(plan.yearlyTotalCents / 100).toFixed(2)}/yr)`,
+      `Created yearly price for "${plan.name}" — ${price.id} ($${(plan.yearlyTotalCents / 100).toFixed(2)}/yr)`,
     );
     return { priceId: price.id, status: 'created' };
   }
@@ -291,7 +291,7 @@ export class StripeSeedService {
     } else {
       const price = await stripe.prices.create({
         product: product.id,
-        currency: 'eur',
+        currency: 'usd',
         unit_amount: pack.priceCents,
         metadata: {
           price_tag: priceTag,
@@ -303,7 +303,7 @@ export class StripeSeedService {
       priceId = price.id;
       priceStatus = 'created';
       this.logger.log(
-        `Created topup price for "${pack.id}" — ${price.id} (€${(pack.priceCents / 100).toFixed(2)})`,
+        `Created topup price for "${pack.id}" — ${price.id} ($${(pack.priceCents / 100).toFixed(2)})`,
       );
     }
 

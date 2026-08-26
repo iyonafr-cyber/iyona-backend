@@ -7,7 +7,7 @@
  * a credit grant without a second database lookup.
  */
 
-export type PlanId = 'elite' | 'pro' | 'builder' | 'starter' | 'free';
+export type PlanId = 'pro' | 'builder' | 'starter' | 'free';
 
 export interface PlanDefinition {
   id: PlanId;
@@ -20,40 +20,31 @@ export interface PlanDefinition {
 
 export const PLANS: PlanDefinition[] = [
   {
-    id: 'elite',
-    name: 'Elite',
-    description:
-      'Scale your app effortlessly with top credits and dedicated support.',
-    monthlyPriceCents: 12999,
-    yearlyTotalCents: 131988,
-    credits: 1700,
-  },
-  {
     id: 'pro',
     name: 'Pro',
     description:
       'Access advanced tools and support for developing complex applications.',
-    monthlyPriceCents: 6999,
-    yearlyTotalCents: 67188,
-    credits: 700,
+    monthlyPriceCents: 6000,
+    yearlyTotalCents: 60000,
+    credits: 600,
   },
   {
     id: 'builder',
     name: 'Builder',
     description:
       'Take your idea to the next level with tools to meet your professional needs.',
-    monthlyPriceCents: 2999,
-    yearlyTotalCents: 31188,
-    credits: 350,
+    monthlyPriceCents: 3000,
+    yearlyTotalCents: 20000,
+    credits: 300,
   },
   {
     id: 'starter',
     name: 'Starter',
     description:
       'Build out your first apps for personal projects or early-stage ideas.',
-    monthlyPriceCents: 1999,
-    yearlyTotalCents: 19188,
-    credits: 120,
+    monthlyPriceCents: 1000,
+    yearlyTotalCents: 10000,
+    credits: 100,
   },
   {
     id: 'free',

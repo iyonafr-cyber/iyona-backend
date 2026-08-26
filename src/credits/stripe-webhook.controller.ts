@@ -3,15 +3,11 @@ import {
   Controller,
   HttpCode,
   HttpStatus,
-  Inject,
   Logger,
-  Optional,
   Post,
   Req,
   ServiceUnavailableException,
-  forwardRef,
 } from '@nestjs/common';
-import { OrgBillingService } from '../organizations/org-billing.service';
 import type { Request } from 'express';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -38,32 +34,7 @@ export class StripeWebhookController {
     private readonly stripeService: StripeService,
     private readonly creditsService: CreditsService,
     @InjectModel(User.name) private readonly userModel: Model<User>,
-    @Optional()
-    @Inject(forwardRef(() => OrgBillingService))
-    private readonly orgBillingService?: OrgBillingService,
   ) {}
-
-  /**
-   * E9 — if the subscription metadata says it belongs to an org, mirror
-   * the state onto the Organization doc. We always run BOTH this and the
-   * legacy user-billing path; user-billing safely no-ops when the
-   * subscription metadata doesn't carry a userId.
-   */
-  private async maybeApplyOrgSubscription(
-    sub: Stripe.Subscription,
-  ): Promise<void> {
-    if (!this.orgBillingService) return;
-    if (!sub.metadata?.orgId) return;
-    try {
-      await this.orgBillingService.applySubscriptionEvent(sub);
-    } catch (err) {
-      this.logger.warn(
-        `org subscription apply failed for ${sub.id}: ${
-          err instanceof Error ? err.message : String(err)
-        }`,
-      );
-    }
-  }
 
   @Public()
   @Post('webhook')
@@ -237,10 +208,6 @@ export class StripeWebhookController {
 
   private async onSubscriptionUpserted(event: Stripe.Event): Promise<void> {
     const sub = event.data.object as Stripe.Subscription;
-    // E9 — mirror org subscription state regardless of whether the
-    // subscription has a user-plan mapping.
-    await this.maybeApplyOrgSubscription(sub);
-
     const planId = this.planFromSubscription(sub);
     if (!planId) return;
 
@@ -324,9 +291,6 @@ export class StripeWebhookController {
 
   private async onSubscriptionCancelled(event: Stripe.Event): Promise<void> {
     const sub = event.data.object as Stripe.Subscription;
-    // E9 — drop the org back to free even if no userId mapping exists.
-    await this.maybeApplyOrgSubscription(sub);
-
     const userId = await this.resolveUserIdByCustomer(sub.customer);
     if (!userId) return;
     // Defer to admin-issued ("manual") subscriptions while active. The
