@@ -302,19 +302,27 @@ export class SupabaseConnectionService {
   }
 
   /**
-   * Confirm the anon key is valid for this project by calling PostgREST's
-   * root endpoint, which every Supabase project exposes and which requires a
-   * valid apikey. A wrong key returns 401 and a wrong ref fails DNS — both
-   * become an actionable message instead of a broken deploy later.
+   * Confirm the client key is valid for this project. Accepts BOTH the legacy
+   * `anon` JWT key and the newer `sb_publishable_…` key.
+   *
+   * We probe a table that (almost certainly) does not exist rather than the
+   * PostgREST root `GET /rest/v1/`: Supabase now restricts that root to SECRET
+   * keys ("Only secret API keys can be used for this endpoint"), so a valid
+   * publishable key 401s there even though it is correct. On a table request the
+   * gateway checks the apikey FIRST — a bad key is 401, a good key reaches
+   * PostgREST which answers 404 (PGRST205, missing table). So anything that is
+   * not 401/403 means the key authenticated.
    */
   private async verifyAnonKey(url: string, anonKey: string): Promise<void> {
+    // Unlikely to exist; if a project really has this table, RLS denial still
+    // returns 200/[] (not 401), so a valid key is never misread as invalid.
+    const probeTable = '_iyona_key_check_9f2a';
     let status: number;
     try {
       // `validateStatus: () => true` so only transport failures throw — the
-      // status code is what we actually want to inspect. PostgREST answers 200
-      // with the OpenAPI doc, but some projects 404 the root while still
-      // authenticating fine, so only 401/403 is treated as a bad key.
-      const resp = await axios.get(`${url}/rest/v1/`, {
+      // status code is what we actually want to inspect. Only 401/403 is a bad
+      // key; 404 (missing table) means the key authenticated fine.
+      const resp = await axios.get(`${url}/rest/v1/${probeTable}?select=*&limit=1`, {
         headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
         timeout: 15_000,
         validateStatus: () => true,
@@ -337,7 +345,7 @@ export class SupabaseConnectionService {
 
     if (status === 401 || status === 403) {
       throw new BadRequestException(
-        'Supabase rejected that anon key. Copy the "anon public" key from Supabase → Project Settings → API.',
+        'Supabase rejected that key. Copy the publishable key (sb_publishable_…), or the legacy anon key, from Supabase → Connect (or Settings → API Keys).',
       );
     }
   }
