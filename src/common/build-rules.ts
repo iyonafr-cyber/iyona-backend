@@ -57,6 +57,42 @@ const ADMIN_REQUIREMENTS = [
 const bullets = (lines: string[], prefix = '- '): string =>
   lines.map((l) => `${prefix}${l}`).join('\n');
 
+// ── Images that actually load ────────────────────────────────────────────────
+
+/**
+ * Broken images are the single most visible defect to a non-developer judging a
+ * live preview. The classic cause: the agent builds `source.unsplash.com/?<kw>`
+ * URLs (that endpoint is deprecated and now fails) or fabricates image ids. This
+ * rule pins image sourcing to URLs that are guaranteed to resolve, with a
+ * mandatory onError fallback so even an unexpected failure never shows the
+ * browser's broken-image icon.
+ */
+const IMAGE_REQUIREMENTS = [
+  'Use ONLY image URLs guaranteed to load on first paint. Prove each one resolves before shipping it.',
+  'DEFAULT source for photographic imagery: `https://picsum.photos/seed/<unique-descriptive-slug>/<w>/<h>` — it always resolves, needs no API key, and is deterministic (same seed → same photo). Give every distinct image its own slug, e.g. `https://picsum.photos/seed/ember-hero/1600/900`.',
+  'NEVER use `source.unsplash.com/...` (deprecated — it now fails), NEVER invent or guess an `images.unsplash.com/photo-<id>` id, and NEVER hotlink an arbitrary third-party page image. These are the usual broken-image causes.',
+  'EVERY `<img>` MUST set explicit width & height (reserve space, avoid layout shift) AND an `onError` handler that swaps to a neutral fallback (a solid surface-coloured block, an inline SVG, or another picsum seed URL) so a failed load never shows a broken-image icon.',
+  'For people/avatars use the kit `<Avatar>` (initials fallback), not remote photos.',
+  'A local asset path (`src/assets/...`, `/public/...`) is valid ONLY if you actually create that file; otherwise use the picsum URLs above. Route recurring imagery (logo, hero, og) through `siteConfig`.',
+];
+
+/** For the plan prompt: SPECIFY concrete, loadable image URLs. */
+export const IMAGE_SOURCES_FOR_PLAN = [
+  'IMAGES (must load — specify concrete, loadable URLs, never vague "Unsplash keywords"):',
+  bullets(IMAGE_REQUIREMENTS),
+].join('\n');
+
+/** For the full-build worker: every emitted image URL must resolve. */
+export const IMAGE_SOURCES_FOR_WORKER = [
+  'IMAGES (every URL must resolve — a broken image fails the visual bar):',
+  bullets(IMAGE_REQUIREMENTS),
+].join('\n');
+
+/** For fix rounds: REPAIR broken/placeholder images. */
+export const IMAGE_SOURCES_FOR_FIX = [
+  'BROKEN IMAGES: replace any `source.unsplash.com/...`, guessed `images.unsplash.com` id, or dead image URL with a `https://picsum.photos/seed/<slug>/<w>/<h>` URL that loads, and add an `onError` fallback to every `<img>` so no broken-image icon can appear.',
+].join(' ');
+
 // ── Entity field parity ─────────────────────────────────────────────────────
 
 /** For the plan prompt: SPECIFY the contract. */
