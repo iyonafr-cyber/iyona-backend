@@ -116,6 +116,7 @@ export class UiKitService implements OnModuleInit {
       .replaceAll('{{RADIUS_MD}}', style.radius.md)
       .replaceAll('{{RADIUS_LG}}', style.radius.lg)
       .replaceAll('{{RADIUS_XL}}', style.radius.xl)
+      .replaceAll('{{RADIUS_FULL}}', style.radius.full)
       .replaceAll('{{SHADOW_SM}}', style.shadow.sm)
       .replaceAll('{{SHADOW_MD}}', style.shadow.md)
       .replaceAll('{{SHADOW_LG}}', style.shadow.lg)

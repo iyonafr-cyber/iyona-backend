@@ -9,7 +9,11 @@ import {
 import { SpecBuildService } from './spec-build.service';
 import { RepoService } from '../repo/repo.service';
 import type { PaletteOverrides } from '../ui-kit/ui-kit.constants';
-import { palettesFromDesignSystem } from '../ui-kit/palette-generator';
+import {
+  palettesFromDesignSystem,
+  autoPalettesFromSeed,
+  autoPaletteBasesFromSeed,
+} from '../ui-kit/palette-generator';
 import type { QuestionPaletteColors } from '../ai/ai.service';
 
 export interface SpecBuildJobSnapshot {
@@ -59,14 +63,21 @@ function envMs(name: string, fallback: number): number {
 const RUNNING_STALE_MS = envMs('SPEC_BUILD_RUNNING_STALE_MS', 45 * 60 * 1000);
 const DEPLOY_STALE_MS = envMs('SPEC_BUILD_DEPLOY_STALE_MS', 120 * 60 * 1000);
 
-function palettesFromThemeAnswer(
+/** The raw base hexes the user explicitly picked in the theme question, if any. */
+function themeColorsFromAnswer(
   answers: Record<string, unknown>,
-): PaletteOverrides | undefined {
+): QuestionPaletteColors | undefined {
   const theme = answers.theme;
   if (!theme || typeof theme !== 'object' || Array.isArray(theme)) {
     return undefined;
   }
-  const colors = (theme as { colors?: QuestionPaletteColors }).colors;
+  return (theme as { colors?: QuestionPaletteColors }).colors ?? undefined;
+}
+
+function palettesFromThemeAnswer(
+  answers: Record<string, unknown>,
+): PaletteOverrides | undefined {
+  const colors = themeColorsFromAnswer(answers);
   if (!colors) return undefined;
   return palettesFromDesignSystem(colors);
 }
@@ -265,7 +276,17 @@ export class SpecBuildJobService {
           string,
           unknown
         >;
-        const palettes = palettesFromThemeAnswer(freshAnswers);
+        // On "Auto" (no explicit colors) fall back to a per-project palette
+        // seeded on projectId, not the shared DEFAULT_PALETTES blue — same seed
+        // the design style uses. We also carry the BASE hexes so spec-build can
+        // PERSIST them on the project; that persistence is what keeps this a
+        // new-builds-only change — existing projects have no stored colors and
+        // are never synthesized a palette at revision time.
+        const themeColors = themeColorsFromAnswer(freshAnswers);
+        const palettes = themeColors
+          ? palettesFromDesignSystem(themeColors)
+          : autoPalettesFromSeed(projectId);
+        const paletteBases = themeColors ?? autoPaletteBasesFromSeed(projectId);
         const styleId = styleIdFromAnswers(freshAnswers);
 
         const result = await this.specBuildService.runSpecBuild(
@@ -276,6 +297,7 @@ export class SpecBuildJobService {
             ctx: { userId: String(jobFresh.userId), projectId },
             questionLabels: jobFresh.questionLabels,
             palettes,
+            paletteBases,
             styleId,
           },
           {

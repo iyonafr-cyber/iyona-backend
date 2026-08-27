@@ -27,6 +27,11 @@ import {
 } from '../common/app-archetypes';
 
 import { KIT_INVENTORY, KIT_USAGE_HINT } from '../ui-kit/kit-prompt';
+import { autoPaletteBasesFromSeed } from '../ui-kit/palette-generator';
+import {
+  resolveDesignStyle,
+  describeDesignStyleForPrompt,
+} from '../ui-kit/ui-kit.constants';
 import {
   ENTITY_PARITY_FOR_PLAN,
   DB_SYNC_FOR_PLAN,
@@ -845,6 +850,7 @@ export class AiService {
       appLocales,
       questionLabels,
       integrations,
+      ctx.projectId,
     );
 
     const messages: LlmMessage[] = [
@@ -1772,6 +1778,10 @@ Respond with ONLY valid JSON. No markdown code blocks. No extra text.`;
     appLocales: AppLocales,
     questionLabels?: Record<string, string>,
     integrations?: BuildSpecIntegrations,
+    // Stable per-project seed (projectId). On "Auto" the kit ships a seeded
+    // brand palette; passing the seed here lets the plan state the SAME hexes
+    // so siteConfig and the seeded tokens never disagree.
+    seed?: string,
   ): string {
     // ── Design system block (same source of truth as the execution plan) ──
     const themeAnswer: unknown = answers?.['theme'];
@@ -1791,6 +1801,20 @@ Respond with ONLY valid JSON. No markdown code blocks. No extra text.`;
         `- Background: ${colors.background}`,
         `- Foreground: ${colors.foreground}`,
       ].join('\n');
+    } else if (seed) {
+      // "Auto" palette: the kit already ships a per-project brand color seeded
+      // on the projectId. Tell the brain the EXACT hexes it shipped so the plan
+      // (and siteConfig) match the seeded tokens instead of inventing a color.
+      const { primary, accent } = autoPaletteBasesFromSeed(seed);
+      designSystemBlock = [
+        'DESIGN SYSTEM (use these exact tokens — the locked UI kit already ships them for this project):',
+        '- Palette: Auto (project-tailored — these are the tokens the kit seeded, not a suggestion)',
+        `- Mode: ${effectiveTheme?.mode ?? 'auto'}`,
+        `- Primary: ${primary}`,
+        `- Accent: ${accent}`,
+        '- Background: neutral (near-white in light / near-black in dark — the kit owns the surface ramp; never paint the body a brand hex)',
+        '- Foreground: high-contrast neutral text (owned by the kit)',
+      ].join('\n');
     } else {
       const palette = effectiveTheme?.palette;
       designSystemBlock = [
@@ -1799,6 +1823,29 @@ Respond with ONLY valid JSON. No markdown code blocks. No extra text.`;
         `- Mode: ${effectiveTheme?.mode ?? 'auto'}`,
       ].join('\n');
     }
+
+    // ── Design style personality ──────────────────────────────────────────
+    // The kit ships this project's fonts/radii/shadows/surface via tokens
+    // (resolved from the SAME styleId + seed the build uses). Surface its FEEL
+    // to the brain so it designs page structure to match, instead of defaulting
+    // to one generic minimal look regardless of which style was seeded.
+    const styleId =
+      (typeof answers?.['designStyle'] === 'string' &&
+        (answers['designStyle'] as string).trim()) ||
+      (typeof (answers?.['theme'] as { style?: unknown })?.style === 'string' &&
+        ((answers['theme'] as { style?: string }).style as string).trim()) ||
+      undefined;
+    // Resolve with the SAME (styleId, seed, category) the build seeds with, so
+    // the plan describes exactly the style the kit ships.
+    const designStyle = resolveDesignStyle(
+      styleId || undefined,
+      seed,
+      detectArchetype(projectIdea).id,
+    );
+    designSystemBlock = [
+      designSystemBlock,
+      describeDesignStyleForPrompt(designStyle),
+    ].join('\n');
 
     // ── User preferences from the questionnaire (theme surfaced above) ──
     let preferencesText = '';
@@ -1915,6 +1962,8 @@ Write a FULL DEVELOPMENT PLAN for a React + React Router + Tailwind v4 single-pa
 
 ${KIT_USAGE_HINT} Do NOT restate the UI kit internals — assume they exist. Do NOT output source code or file contents; output the plan the agent builds from. The plan is the agent's ONLY source of truth — every route, file, dependency, and behavior must be stated in it.
 
+LAYOUT GROUNDING (do this FIRST, in your head, and let it shape sections 2, 4 and 5): identify the product's CATEGORY and recall 2–3 well-known, best-in-class real websites in that EXACT category as reference points (e.g. a specialty coffee shop → established specialty-coffee sites; a project-management SaaS → established PM tools; a dentist → modern dental-practice sites). Design the information architecture, section order, navigation pattern and page layouts to follow the PROVEN CONVENTIONS those category leaders share — what the hero does and shows, how a listing/grid or menu is presented, the order of trust / social-proof / pricing / FAQ / contact sections, what lives in the header and footer — so the app feels immediately familiar and credible for its category rather than generic. THEN differentiate on brand: colour, tone, copy, imagery and the design personality above are this product's own. Follow category conventions for STRUCTURE; never copy any real site's exact wording, brand name, logo, layout pixel-for-pixel, or images. In section 4 you will NAME the category and the reference sites you drew on (one line) so the layout is traceable.
+
 The plan (the "brief" field below) is a markdown document with these sections, in order:
 
 ## 1. Product
@@ -1922,10 +1971,10 @@ Two sentences: what it is, who it's for, and the single most important user job.
 
 ## 2. Design language
 Exact palette hex values, light/dark mode decision, the typographic SCALE (heading/body sizes + weights), spacing rhythm, border-radius and shadow personality, and the overall visual tone in 3 adjectives.
-TYPOGRAPHY IS FIXED: the locked kit already ships an Apple-grade type system — the SF Pro system font stack (via --font-sans) with refined heading weight/tracking/line-height. Do NOT choose or name a different font family (no Inter, Roboto, Google Fonts); specify only the size/weight scale on top of it.
+TYPOGRAPHY: the locked kit already ships THIS project's font family and refined heading weight/tracking/line-height via --font-sans / --font-display. The family is chosen per project — do NOT assume it is SF Pro or name any specific family, and do NOT import a webfont (no Inter, Roboto, Google Fonts). Specify only the type SCALE (heading/body sizes + weights) and rhythm on top of whatever the kit ships; describe tone via scale and spacing, not a font name.
 DESIGN GUARDRAILS (mandatory — a saturated app never looks finished):
 - The page BODY background stays neutral (near-white in light mode / near-black in dark). NEVER paint the whole body or the header in a saturated brand/background hex — map saturated tokens to accents, buttons, badges, and at most tinted section surfaces (≤10% of the viewport).
-- The hero and key sections carry real visual weight. Use the kit's on-brand gradient utility classes — .bg-gradient-mesh (hero backgrounds), .bg-gradient-brand (CTA bands), .bg-gradient-subtle (section tint), .text-gradient (headline accent) — or real imagery/product photography. Never just text on a flat colour.
+- The hero and key sections carry real visual weight — never just text on a flat colour. Choose section treatments that fit THIS product's tone and design personality, and DECIDE them explicitly (name the hero treatment, the CTA treatment, and how they differ). The kit ships utilities you MAY reach for — .bg-gradient-mesh, .bg-gradient-brand, .bg-gradient-subtle, .text-gradient — alongside solid tinted surfaces, bordered/flat editorial bands, and real imagery/product photography. They are a palette of options, NOT a fixed recipe: do not default every project to a gradient-mesh hero + gradient-brand CTA. Pick what suits the brand.
 - Reserve the Table primitive for admin/back-office/data-dense surfaces. Customer-facing lists (products, articles, projects, listings) are CARD GRIDS, not tables.
 
 ## 3. Motion & animation
@@ -1933,7 +1982,7 @@ Concrete policy: page-transition style, list/stagger reveals, hover/press feedba
 THE KIT ALREADY SHIPS MOTION — plan on top of it, do not reinvent it: PageTransition (wraps route content), Stagger + StaggerItem (list/grid reveals), SmoothScroll (app root, lenis-backed). Name which of these each surface uses. Reach for raw Motion ("motion/react") ONLY for bespoke motion these three cannot express, and say so explicitly when you do.
 
 ## 4. Global structure
-Describe the PUBLIC shell: header/nav, footer, layout container width, and the consistent page scaffold every public screen follows (e.g. page header block → content → empty/loading states). This is what makes the customer-facing site feel uniform — be prescriptive.
+Open with ONE line naming the product CATEGORY and the 2–3 reference sites whose conventions you followed (per LAYOUT GROUNDING above) — e.g. "Category: specialty coffee shop; references: Blue Bottle, Stumptown — hero with full-bleed product imagery, menu-first nav, story/about section, locations, newsletter footer." Then describe the PUBLIC shell: header/nav, footer, layout container width, and the consistent page scaffold every public screen follows (e.g. page header block → content → empty/loading states). This is what makes the customer-facing site feel uniform — be prescriptive, and keep the shell + section order aligned with the category conventions you named.
 ${ADMIN_FOR_PLAN}
 
 ## 5. Pages

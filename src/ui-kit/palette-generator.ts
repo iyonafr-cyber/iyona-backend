@@ -146,3 +146,80 @@ export function palettesFromDesignSystem(
 
   return Object.keys(out).length > 0 ? out : undefined;
 }
+
+// ── "Auto" palettes: deterministic per-project brand colors ────────────────
+//
+// WHY THIS EXISTS: when the user leaves colors on "Auto", the theme answer has
+// no hex values, so palettesFromDesignSystem() returns undefined and the kit
+// fell back to DEFAULT_PALETTES — the SAME blue/slate/fuchsia for EVERY Auto
+// project. That single default is the biggest reason generated sites all looked
+// alike. Instead, we pick a brand color deterministically from a stable seed
+// (the projectId), exactly like pickDesignStyle() picks a design style: same
+// project → same colors across the initial build and every revision, different
+// projects → visibly different brands.
+
+/** Curated, pleasant primary bases (shade 500). Hand-picked so every Auto
+ *  project lands on a tasteful, saturated-but-not-garish brand color — safer
+ *  than raw hue math, which drifts into muddy yellow-greens. */
+const AUTO_PRIMARY_BASES = [
+  '#4f46e5', // indigo
+  '#0d9488', // teal
+  '#e11d48', // rose
+  '#7c3aed', // violet
+  '#ea580c', // orange
+  '#0891b2', // cyan
+  '#16a34a', // green
+  '#db2777', // pink
+  '#2563eb', // blue
+  '#ca8a04', // amber
+  '#0f766e', // deep teal
+  '#9333ea', // purple
+] as const;
+
+/** Stable 32-bit hash — identical construction to pickDesignStyle()'s seed. */
+function hashSeed(seed: string): number {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+}
+
+/** Rotate a hex color's hue by `deg` degrees, preserving saturation/lightness. */
+function rotateHue(hex: string, deg: number): string {
+  const [r, g, b] = hexToRgb(hex.replace('#', ''));
+  const [h, s, l] = rgbToHsl(r, g, b);
+  const nh = ((((h * 360 + deg) % 360) + 360) % 360) / 360;
+  const [rr, gg, bb] = hslToRgb(nh, s, l);
+  return rgbToHex(rr, gg, bb);
+}
+
+/**
+ * The primary + accent BASE hex (shade 500) an "Auto" project resolves to.
+ * The accent is a fixed hue rotation off the primary so the two always
+ * harmonize. Exposed on its own so the plan prompt can state the SAME hex
+ * values the kit actually ships — otherwise the brain would invent a palette
+ * that disagrees with the seeded tokens.
+ */
+export function autoPaletteBasesFromSeed(seed: string): {
+  primary: string;
+  accent: string;
+} {
+  const primary = AUTO_PRIMARY_BASES[hashSeed(seed) % AUTO_PRIMARY_BASES.length];
+  const accent = rotateHue(primary, 150); // near-complementary, still harmonious
+  return { primary, accent };
+}
+
+/**
+ * Full 50–950 primary + accent palettes for an "Auto" project, derived from a
+ * stable seed. Secondary is intentionally omitted — the design style owns the
+ * neutral surface ramp, and the kit's DEFAULT secondary is a fine neutral.
+ * Use as the fallback wherever `palettesFromDesignSystem()` returns undefined.
+ */
+export function autoPalettesFromSeed(seed: string): {
+  primary: Record<string, string>;
+  accent: Record<string, string>;
+} {
+  const { primary, accent } = autoPaletteBasesFromSeed(seed);
+  return { primary: generatePalette(primary), accent: generatePalette(accent) };
+}
