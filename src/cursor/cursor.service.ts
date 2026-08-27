@@ -39,6 +39,8 @@ import {
   ADMIN_FOR_WORKER,
   ENTITY_PARITY_SELF_CHECK,
   DB_SYNC_SELF_CHECK,
+  IMAGE_SOURCES_FOR_WORKER,
+  IMAGE_SOURCES_FOR_FIX,
 } from '../common/build-rules';
 
 export interface CursorRoundInput {
@@ -154,6 +156,7 @@ const CLEANUP_TASK = [
   '',
   ENTITY_PARITY_FOR_FIX,
   DB_SYNC_FOR_FIX,
+  IMAGE_SOURCES_FOR_FIX,
   '',
   'Before finishing: mentally verify `npm install` and `npm run build` (production) would succeed on a clean Linux checkout — same as Vercel.',
   KIT_LOCKED_RULE,
@@ -282,6 +285,7 @@ function buildStandaloneUserPrompt(userText: string): string {
     'SITE CONFIG: if src/config/site.ts exists it is the single source of truth for the brand name, tagline, theme token values, and recurring image URLs. For requests like "rename the site", "change the colors", or "swap the logo/hero image", edit siteConfig (plus the CSS design tokens for colors) instead of hunting hardcoded strings — and keep any new brand/image references flowing through it.',
     ENTITY_PARITY_FOR_FIX,
     DB_SYNC_FOR_FIX,
+    `When your change adds or swaps any image: ${IMAGE_SOURCES_FOR_FIX}`,
     'Keep strictly to the point: implement only what the user asked for. No drive-by refactors, unrelated files, or extra changes unless the user explicitly requests them.',
     'Keep natural-language replies short.',
     'When you open a pull request, open it as ready for review (not draft).',
@@ -368,6 +372,7 @@ const FULL_BUILD_TASK = [
   KIT_USAGE_HINT,
   'The kit ships light + dark styles (Tailwind `dark:` / prefers-color-scheme); mirror that in your own markup.',
   'TYPOGRAPHY: the kit sets THIS project\'s font via --font-sans / --font-display (chosen per project — do NOT assume SF Pro or any specific family) plus refined heading tracking/weight. In src/index.css do NOT set a font-family and do NOT import a Google font (no Inter/Roboto) — just `@import "./styles/ui-kit.css";` then `@import "tailwindcss";`. Follow the type SCALE the plan specifies on top of the kit font.',
+  IMAGE_SOURCES_FOR_WORKER,
   'SECTION BACKGROUNDS: keep the page body neutral, but give heroes and key sections real depth — never plain text on a flat colour. The kit ships gradient utilities you MAY use — `.bg-gradient-mesh`, `.bg-gradient-brand`, `.bg-gradient-subtle`, `.text-gradient` — but they are a menu, not a formula: pick the section treatment that fits THIS product and its design style (a gradient, a solid tinted surface, a bordered/flat editorial band, or real imagery), and vary the hero and CTA treatments rather than defaulting every site to a gradient-mesh hero. Follow the plan\'s Design language section when it specifies a treatment.',
   '',
   'MANDATORY VERCEL BUILD CHECK — do this before opening the PR, do NOT skip:',
@@ -390,6 +395,7 @@ const FULL_BUILD_TASK = [
   `3. ${DB_SYNC_SELF_CHECK}`,
   '4. ADMIN SURFACE (when /admin exists): open an admin page and a public page side by side — they must look like different products. No public Header/Footer import anywhere under pages/admin/, sidebar present, tables not card grids, neutral surfaces. Then confirm every stored entity has list + new + edit routes wired in the router, and that /admin/settings saves values the public footer or contact page actually reads back.',
   '5. Every seed record fills every field in its entity table (especially images) — no blank spots in a rendered card.',
+  '5b. IMAGES LOAD: no `<img>` uses source.unsplash.com or a guessed/dead URL; every image is a loadable URL (picsum seed URLs by default) and has an onError fallback. A broken-image icon anywhere is a failure.',
   '6. No dead controls: every button, icon, and link navigates or performs an action.',
   '7. No placeholder content: no Lorem, no "Feature One/Two/Three", no TODO, no page that is just a heading and a paragraph.',
   '8. Mutable state survives a reload (localStorage for mock-mode apps; Supabase rows for DB-backed entities).',

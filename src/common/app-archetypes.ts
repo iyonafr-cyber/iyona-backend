@@ -82,7 +82,7 @@ const ARCHETYPES: Record<string, AppArchetype> = {
       {
         key: 'home',
         label:
-          'Storefront home: image-led hero, featured/best-seller products, category tiles, social proof/testimonials, newsletter band (≥5 distinct sections)',
+          'Storefront home: a strong hero whose composition fits the design personality (full-bleed image, split image+copy, or bold type-led — not always the same full-bleed-photo-with-two-buttons), featured/best-seller products, category tiles, social proof/testimonials, newsletter band (≥5 distinct sections)',
         patterns: [
           /\b(home|homepage|storefront|accueil|vitrine|landing)\b/i,
           /\/($|"|`|\s)/,
@@ -231,7 +231,7 @@ const ARCHETYPES: Record<string, AppArchetype> = {
       },
     ],
     guidance: [
-      'The home page must carry real visual weight: imagery or gradient art in the hero, multiple varied sections — never text on a flat colour.',
+      'The home page must carry real visual weight AND vary: choose a hero treatment that fits the design personality (full-bleed image, split image+copy, bold type-led, or gradient art — not always the same full-bleed-photo-with-two-buttons), then follow it with several DIFFERENT section types — never text on a flat colour.',
     ],
   },
 

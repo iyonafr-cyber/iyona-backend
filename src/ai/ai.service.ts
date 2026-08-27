@@ -37,6 +37,7 @@ import {
   DB_SYNC_FOR_PLAN,
   ADMIN_FOR_PLAN,
   ENTITY_PARITY_SELF_CHECK,
+  IMAGE_SOURCES_FOR_PLAN,
 } from '../common/build-rules';
 
 export interface ValidatedInput {
@@ -1948,6 +1949,8 @@ Respond with ONLY valid JSON. No markdown code blocks. No extra text.`;
 
     return `${designSystemBlock}
 
+${IMAGE_SOURCES_FOR_PLAN}
+
 ${archetypeBlock}
 ${integrationsBlock}${envExampleBlock}${siteConfigBlock}
 
@@ -1990,7 +1993,7 @@ Cover EVERY screen in the APP ARCHETYPE manifest above, plus any others the spec
 - **Route** (ASCII path) and **component name** (e.g. PricingPage)
 - **Purpose** (one line)
 - **Layout** (section-by-section, top to bottom) — every page has at least 2–3 substantive sections; the home/landing page has at least 5. Never a bare heading + one paragraph.
-- **Key components & realistic mock data** (concrete names, prices, stats — never "Item 1"). List/index pages name a seed set of at least 12–20 realistic records; state which images (e.g. Unsplash keywords) back image-bearing content.
+- **Key components & realistic mock data** (concrete names, prices, stats — never "Item 1"). List/index pages name a seed set of at least 12–20 realistic records; for image-bearing content give a concrete loadable image URL per the IMAGE SOURCES rule above (a picsum.photos/seed/... URL), NOT a vague "Unsplash keyword".
 - **Primary interactions** (filters, forms, modals, navigation). Every button and icon names its destination or behaviour — no decorative/dead controls (e.g. a header cart icon MUST link to the cart route).
 - **Fields** (create/edit screens ONLY): list the form's inputs by field name and control type. This list MUST equal the entity's \`user\` fields in section 6 — every one, same names, nothing invented. Write it out in full rather than saying "the usual fields".
 Plan list/detail/create/edit screens for every CRUD entity and /admin/* for admin areas.
