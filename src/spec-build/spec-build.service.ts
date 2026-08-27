@@ -9,6 +9,7 @@ import { RevisionsService } from '../revisions/revisions.service';
 import { UserProject } from '../projects/entities/user-project.entity';
 import { resolveDesignStyle, DESIGN_STYLES } from '../ui-kit/ui-kit.constants';
 import type { PaletteOverrides } from '../ui-kit/ui-kit.constants';
+import { detectArchetype } from '../common/app-archetypes';
 import { isManagedProvisioningEnabled } from 'src/supabase/managed-provisioning.flag';
 
 export interface SpecBuildRunHooks {
@@ -53,6 +54,18 @@ export class SpecBuildService {
       ctx: AiCallContext;
       questionLabels?: Record<string, string>;
       palettes?: PaletteOverrides;
+      /**
+       * Base hexes the kit was seeded with (explicit theme colors, else the
+       * per-project auto bases). Persisted on the project so revisions/redeploys
+       * re-derive the SAME colors — this is what scopes the auto palette to new
+       * builds only. Omitted → nothing persisted (pre-existing behavior).
+       */
+      paletteBases?: {
+        primary?: string;
+        accent?: string;
+        background?: string;
+        foreground?: string;
+      };
       /** Design style id chosen in the questionnaire ('auto' / unset → pick). */
       styleId?: string;
     },
@@ -155,19 +168,41 @@ export class SpecBuildService {
 
     await hooks?.onBriefReady?.({ brief, estimate, loadingFiles });
 
-    // Persist the user's explicit style choice so revisions/redeploys keep it.
+    // Resolve the CONCRETE design style once: honor an explicit pick, else pick
+    // from the site category's pool (so e.g. a portfolio/fashion store can get
+    // the zero-radius `sharp` look, SaaS gets geometric, etc.). We persist the
+    // resolved id — even on Auto — so every later revision/redeploy re-seeds the
+    // SAME style instead of re-deriving it. Pre-existing projects (no stored id)
+    // keep resolving through the untouched legacy pool, so none are restyled.
+    const categoryId = detectArchetype(input.projectIdea).id;
+    const designStyle = resolveDesignStyle(
+      input.styleId,
+      projectId,
+      categoryId,
+    );
+    let projectDirty = false;
     if (
-      input.styleId &&
-      input.styleId !== 'auto' &&
-      DESIGN_STYLES[input.styleId] &&
-      project.designStyleId !== input.styleId
+      DESIGN_STYLES[designStyle.id] &&
+      project.designStyleId !== designStyle.id
     ) {
-      project.designStyleId = input.styleId;
+      project.designStyleId = designStyle.id;
+      projectDirty = true;
+    }
+    // Persist the seeded palette bases so every later revision/redeploy reads
+    // these SAME colors (via project.designSystemColors) instead of falling back
+    // to the shared default blue. Only sets when empty — an explicit palette the
+    // front-end already saved is never overwritten. Pre-existing projects, which
+    // never get here, keep their current default and are not recolored.
+    if (input.paletteBases && !project.designSystemColors) {
+      project.designSystemColors = input.paletteBases;
+      projectDirty = true;
+    }
+    if (projectDirty) {
       await project.save();
     }
     const kitFiles = this.uiKitService.getInitialFiles(
       input.palettes,
-      resolveDesignStyle(input.styleId, projectId),
+      designStyle,
     );
     await this.repoService.commitTree(
       owner,

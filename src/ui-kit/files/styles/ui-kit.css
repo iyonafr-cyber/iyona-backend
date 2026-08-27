@@ -69,7 +69,7 @@
   --radius-md:  {{RADIUS_MD}};
   --radius-lg:  {{RADIUS_LG}};
   --radius-xl:  {{RADIUS_XL}};
-  --radius-full: 9999px;
+  --radius-full: {{RADIUS_FULL}};
 
   /* ── Shadows (style-specific elevation) ──────────────────────── */
   --shadow-sm:  {{SHADOW_SM}};

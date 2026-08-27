@@ -473,6 +473,10 @@ export class RevisionsService {
     const dsColors =
       createRevisionDto.metadata?.designSystemColors ??
       project.designSystemColors;
+    // Colors come only from what the project actually stored: explicit user
+    // colors, or the seeded auto bases that new builds persist. We do NOT
+    // synthesize a palette here — a pre-existing project with no stored colors
+    // keeps its original default rather than being recolored on revision.
     const palettes = palettesFromDesignSystem(dsColors);
 
     // Persist on the project for future revisions (mutations) so they get the
