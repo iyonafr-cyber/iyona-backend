@@ -411,13 +411,19 @@ const LEGACY_AUTO_STYLE_IDS = [
  * the seed, so it is stable across the build and every revision.
  */
 const CATEGORY_STYLE_POOLS: Record<string, readonly string[]> = {
-  portfolio: ['sharp', 'editorial', 'apple'],
-  ecommerce: ['rounded', 'sharp', 'apple'],
-  blog: ['editorial', 'sharp', 'apple'],
-  saas: ['geometric', 'apple', 'corporate'],
-  marketing: ['apple', 'geometric', 'editorial'],
-  booking: ['rounded', 'apple', 'corporate'],
-  community: ['rounded', 'geometric', 'apple'],
+  // Wide pools so different projects in the SAME category fan out across looks
+  // instead of clustering on one style. Each pool is ordered most→least typical
+  // for the category (the first entry is the seedless fallback), but a seeded
+  // pick spreads evenly across the whole pool. `sharp`/`editorial` deliberately
+  // reach beyond the obvious categories so upscale/design-forward brands in any
+  // vertical can land on them.
+  portfolio: ['sharp', 'editorial', 'geometric', 'apple', 'rounded'],
+  ecommerce: ['rounded', 'sharp', 'editorial', 'apple', 'geometric'],
+  blog: ['editorial', 'sharp', 'apple', 'rounded', 'geometric'],
+  saas: ['geometric', 'apple', 'corporate', 'sharp', 'rounded'],
+  marketing: ['apple', 'geometric', 'editorial', 'sharp', 'rounded'],
+  booking: ['rounded', 'apple', 'editorial', 'corporate', 'geometric'],
+  community: ['rounded', 'geometric', 'apple', 'sharp'],
 };
 
 /**
