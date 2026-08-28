@@ -16,6 +16,7 @@ import {
   describeDesignStyleForPrompt,
   pickHeroTreatment,
   describeHeroTreatmentForPrompt,
+  describeBlockPlanForPrompt,
 } from '../ui-kit/ui-kit.constants';
 import type { PaletteOverrides } from '../ui-kit/ui-kit.constants';
 import { detectArchetype } from '../common/app-archetypes';
@@ -244,7 +245,9 @@ export class SpecBuildService {
       input.paletteBases?.primary
         ? `Brand palette (already seeded as kit tokens): primary ${input.paletteBases.primary}${input.paletteBases.accent ? `, accent ${input.paletteBases.accent}` : ''} — reference via token classes (bg-primary-600 …), never hex literals.`
         : '',
-      describeHeroTreatmentForPrompt(pickHeroTreatment(projectId)),
+      describeHeroTreatmentForPrompt(pickHeroTreatment(projectId, designStyle)),
+      '',
+      describeBlockPlanForPrompt(designStyle, projectId),
       '',
       stockImageBlockForIdea(input.projectIdea),
     ]

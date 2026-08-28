@@ -13,6 +13,7 @@ import {
   KIT_PRIMITIVE_NAMES,
   KIT_COMPOSITION_NAMES,
   KIT_MOTION_NAMES,
+  KIT_BLOCK_NAMES,
   KIT_DEPENDENCIES,
   SCAFFOLD_DEPENDENCIES,
 } from './ui-kit.constants';
@@ -20,17 +21,19 @@ import {
 const primitives = KIT_PRIMITIVE_NAMES.join(', ').replace('Toast', 'toast');
 const compositions = KIT_COMPOSITION_NAMES.join(', ');
 const motion = KIT_MOTION_NAMES.join(', ');
+const blocks = KIT_BLOCK_NAMES.join(', ');
 
 /** Full inventory sentence — what may be imported and must never be redefined. */
 export const KIT_INVENTORY = [
   `Import from "@/components/ui" — primitives: ${primitives}/ToastContainer; compositions: ${compositions}; motion: ${motion}.`,
-  'NEVER define your own version of any of these. Read src/components/ui/index.ts for the exact exports.',
+  `Import from "@/components/blocks" — section blocks: ${blocks}. Each takes a \`variant\` prop; the variant for THIS project is given in the design context and is not yours to change.`,
+  'NEVER define your own version of any of these. Read src/components/ui/index.ts and src/components/blocks/index.ts for the exact exports.',
   'Use cn() from "@/lib/cn" for class merging and the @theme design tokens from src/styles/ui-kit.css.',
 ].join('\n');
 
 /** The locked-files rule. Paired with {@link KIT_INVENTORY} in every prompt. */
 export const KIT_LOCKED_RULE =
-  'UI KIT (LOCKED): Files under src/components/ui/, src/lib/cn.ts, and src/styles/ui-kit.css are the design system — NEVER modify, delete, or overwrite them.';
+  'UI KIT (LOCKED): Files under src/components/ui/, src/components/blocks/, src/lib/cn.ts, and src/styles/ui-kit.css are the design system — NEVER modify, delete, or overwrite them.';
 
 /** Reach-for guidance so pages feel finished instead of card-soup. */
 export const KIT_USAGE_HINT =
