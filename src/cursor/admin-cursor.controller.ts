@@ -17,9 +17,16 @@ import { CursorService } from './cursor.service';
 export class AdminCursorController {
   constructor(private readonly cursor: CursorService) {}
 
+  /**
+   * The full live catalogue — model ids, display names, and each model's
+   * parameters (effort/reasoning/thinking/fast) with permitted values — so the
+   * dashboard renders model AND effort pickers from current Cursor data
+   * instead of a hardcoded list. Flat string[] remains available to older
+   * clients via the same payload's `id` fields.
+   */
   @Get('models')
   async models() {
-    const data = await this.cursor.listAgentModels();
+    const data = await this.cursor.listAgentModelCatalog();
     return { data };
   }
 }

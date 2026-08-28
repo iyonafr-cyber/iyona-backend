@@ -3,8 +3,9 @@
  *
  * It is resolved per run rather than cached in the constructor: an admin
  * switching the model has to affect the next build. These tests pin the
- * precedence (admin setting → CURSOR_AGENT_MODEL_ID → composer-2) and the
- * fallback when the settings read fails.
+ * precedence (admin setting → CURSOR_AGENT_MODEL_ID → composer-2), the
+ * fallback when the settings read fails, and the shape of the model params
+ * (effort/reasoning/…) attached to the agent create body.
  */
 import { Model } from 'mongoose';
 import { CursorService } from './cursor.service';
@@ -20,10 +21,17 @@ function serviceWith(settings: unknown): CursorService {
   );
 }
 
-function resolve(service: CursorService): Promise<string> {
+function resolve(
+  service: CursorService,
+): Promise<{ id: string; params?: Array<{ id: string; value: string }> }> {
   return (
-    service as unknown as { resolveModelId: () => Promise<string> }
-  ).resolveModelId();
+    service as unknown as {
+      resolveModelSelection: () => Promise<{
+        id: string;
+        params?: Array<{ id: string; value: string }>;
+      }>;
+    }
+  ).resolveModelSelection();
 }
 
 describe('CursorService coding-model resolution', () => {
@@ -38,7 +46,39 @@ describe('CursorService coding-model resolution', () => {
     const service = serviceWith({
       get: () => Promise.resolve({ cursorAgentModelId: 'claude-4-sonnet' }),
     });
-    await expect(resolve(service)).resolves.toBe('claude-4-sonnet');
+    await expect(resolve(service)).resolves.toEqual({
+      id: 'claude-4-sonnet',
+    });
+  });
+
+  it('attaches admin-configured model params in Cursor {id,value} shape', async () => {
+    process.env.CURSOR_AGENT_MODEL_ID = 'composer-2';
+    const service = serviceWith({
+      get: () =>
+        Promise.resolve({
+          cursorAgentModelId: 'claude-opus-5',
+          cursorAgentModelParams: { effort: 'high', fast: 'true', blank: ' ' },
+        }),
+    });
+    await expect(resolve(service)).resolves.toEqual({
+      id: 'claude-opus-5',
+      params: [
+        { id: 'effort', value: 'high' },
+        { id: 'fast', value: 'true' },
+      ],
+    });
+  });
+
+  it('never attaches params to the env-fallback model', async () => {
+    process.env.CURSOR_AGENT_MODEL_ID = 'gpt-5';
+    const service = serviceWith({
+      get: () =>
+        Promise.resolve({
+          cursorAgentModelId: null,
+          cursorAgentModelParams: { effort: 'max' },
+        }),
+    });
+    await expect(resolve(service)).resolves.toEqual({ id: 'gpt-5' });
   });
 
   it('falls back to the env id when nothing is configured', async () => {
@@ -46,7 +86,7 @@ describe('CursorService coding-model resolution', () => {
     const service = serviceWith({
       get: () => Promise.resolve({ cursorAgentModelId: null }),
     });
-    await expect(resolve(service)).resolves.toBe('gpt-5');
+    await expect(resolve(service)).resolves.toEqual({ id: 'gpt-5' });
   });
 
   it('ignores a blank setting rather than sending an empty model id', async () => {
@@ -54,7 +94,7 @@ describe('CursorService coding-model resolution', () => {
     const service = serviceWith({
       get: () => Promise.resolve({ cursorAgentModelId: '   ' }),
     });
-    await expect(resolve(service)).resolves.toBe('gpt-5');
+    await expect(resolve(service)).resolves.toEqual({ id: 'gpt-5' });
   });
 
   it('still builds when the settings read fails', async () => {
@@ -62,6 +102,6 @@ describe('CursorService coding-model resolution', () => {
     const service = serviceWith({
       get: () => Promise.reject(new Error('mongo down')),
     });
-    await expect(resolve(service)).resolves.toBe('composer-2');
+    await expect(resolve(service)).resolves.toEqual({ id: 'composer-2' });
   });
 });

@@ -20,6 +20,7 @@ import {
 } from '../common/conversation-locale';
 import {
   detectArchetype,
+  detectBuildScope,
   ideaImpliesAuth,
   buildArchetypeManifestBlock,
   lintPlanAgainstArchetype,
@@ -867,6 +868,13 @@ export class AiService {
       { role: 'user', content: prompt },
     ];
 
+    // Compact requests plan 3–5 pages instead of 8–15: a smaller output budget
+    // directly cuts brain-phase wall time (generation time scales with tokens
+    // emitted). 10k is still ~2× what a lean 4-page plan needs, and the
+    // truncation check below catches the rare overrun loudly.
+    const buildScope = detectBuildScope(projectIdea);
+    const planMaxTokens = buildScope === 'compact' ? 10000 : 18000;
+
     const first = await this.meteredChat({
       ctx,
       action: 'build_spec',
@@ -878,8 +886,8 @@ export class AiService {
       // The full development plan (with file map + build order) is larger
       // than the old design-only brief. Budgeted generously so per-page specs
       // stay detailed (thin one-line page specs are where richness dies) and
-      // the archetype manifest can be fully expanded across 8–15 pages.
-      maxOutputTokens: 18000,
+      // the archetype manifest can be fully expanded across its page floor.
+      maxOutputTokens: planMaxTokens,
     });
 
     // A build spec that hit the output-token ceiling is a partial, invalid
@@ -907,6 +915,7 @@ export class AiService {
       parsedFirst.brief,
       archetype,
       impliesAuth,
+      buildScope,
     );
     if (!lint.ok) {
       this.logger.warn(
@@ -933,7 +942,7 @@ export class AiService {
         ],
         temperature: 0.4,
         jsonMode: true,
-        maxOutputTokens: 18000,
+        maxOutputTokens: planMaxTokens,
       });
       // A truncated amendment is unusable; keep the (valid) original plan
       // rather than replacing it with a fragment.
@@ -956,6 +965,7 @@ export class AiService {
         parsedRepair.brief,
         archetype,
         impliesAuth,
+        buildScope,
       );
       // Keep the amended plan only if it is at least as complete as the first.
       if (
@@ -1887,7 +1897,13 @@ Respond with ONLY valid JSON. No markdown code blocks. No extra text.`;
     // we verify later.
     const archetype = detectArchetype(projectIdea);
     const impliesAuth = ideaImpliesAuth(projectIdea);
-    const archetypeBlock = buildArchetypeManifestBlock(archetype, impliesAuth);
+    // Same scope detection generateBuildSpec uses for the lint — the manifest
+    // asked for and the floor enforced must always agree.
+    const archetypeBlock = buildArchetypeManifestBlock(
+      archetype,
+      impliesAuth,
+      detectBuildScope(projectIdea),
+    );
 
     // ── Real integrations block ──────────────────────────────────────────
     // These override the default mock-data / localStorage scaffold for the

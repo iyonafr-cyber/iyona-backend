@@ -35,6 +35,17 @@ export class AdminSettings {
   @Prop({ type: String, default: null })
   cursorAgentModelId: string | null;
 
+  /**
+   * Model parameters for the Cursor coding model — effort/reasoning/thinking/
+   * fast, as `{ paramId: value }` (e.g. `{ effort: 'high', fast: 'true' }`).
+   * Valid ids/values come from Cursor's live catalogue (GET /v1/models),
+   * which the admin dashboard renders as dropdowns — so what is stored here
+   * was picked from what Cursor actually accepts at the time of saving.
+   * Only applied when cursorAgentModelId is also set; null → model defaults.
+   */
+  @Prop({ type: MongooseSchema.Types.Mixed, default: null })
+  cursorAgentModelParams: Record<string, string> | null;
+
   @Prop({
     type: MongooseSchema.Types.ObjectId,
     ref: 'User',
