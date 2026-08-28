@@ -554,7 +554,7 @@ export class WorkspaceController {
     // with generic advice instead of fixing anything.)
     const project = await this.projectModel
       .findById(projectId)
-      .select('supabase')
+      .select('supabase name initialPrompt')
       .lean();
     const sb = project?.supabase;
 
@@ -562,7 +562,13 @@ export class WorkspaceController {
     // "Please make it work on supabase" is a fix request once credentials
     // exist — it must reach the Cursor agent, not re-run provisioning.
     if (!isSupabaseReadyForUse(sb)) {
-      const needsDb = await this.databaseDetect.promptRequiresDatabase(prompt);
+      // Pass what the app IS: the classifier judges an edit request far better
+      // in context ("add reviews" means something different for a static
+      // brochure site than for a marketplace).
+      const needsDb = await this.databaseDetect.promptRequiresDatabase(prompt, {
+        name: project?.name,
+        idea: project?.initialPrompt,
+      });
       if (needsDb) {
         const databaseStatus = supabaseLifecycleStatus(sb);
         // Decision 07 — tell the SPA which affordance to show. Without this it
