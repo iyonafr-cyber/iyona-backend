@@ -60,37 +60,45 @@ const bullets = (lines: string[], prefix = '- '): string =>
 // ── Images that actually load ────────────────────────────────────────────────
 
 /**
- * Broken images are the single most visible defect to a non-developer judging a
- * live preview. The classic cause: the agent builds `source.unsplash.com/?<kw>`
- * URLs (that endpoint is deprecated and now fails) or fabricates image ids. This
- * rule pins image sourcing to URLs that are guaranteed to resolve, with a
- * mandatory onError fallback so even an unexpected failure never shows the
- * browser's broken-image icon.
+ * Broken OR irrelevant images are the most visible defect to a non-developer
+ * judging a live preview. Two failure modes, both prompt-caused:
+ *   1. Broken: `source.unsplash.com/?<kw>` (deprecated, 404s) or fabricated
+ *      `images.unsplash.com` ids.
+ *   2. Irrelevant: subject-random services (picsum) — a barber shop rendered
+ *      nature/swimming photos because the seed only pins WHICH random photo.
+ * The fix for both is the same: a curated VERIFIED IMAGE LIBRARY (see
+ * stock-images.ts) injected into the prompt — every URL confirmed to load and
+ * labeled with its subject — plus an onError fallback so even an unexpected
+ * failure never shows the browser's broken-image icon.
  */
 const IMAGE_REQUIREMENTS = [
-  'Use ONLY image URLs guaranteed to load on first paint. Prove each one resolves before shipping it.',
-  'DEFAULT source for photographic imagery: `https://picsum.photos/seed/<unique-descriptive-slug>/<w>/<h>` — it always resolves, needs no API key, and is deterministic (same seed → same photo). Give every distinct image its own slug, e.g. `https://picsum.photos/seed/ember-hero/1600/900`.',
-  'NEVER use `source.unsplash.com/...` (deprecated — it now fails), NEVER invent or guess an `images.unsplash.com/photo-<id>` id, and NEVER hotlink an arbitrary third-party page image. These are the usual broken-image causes.',
-  'EVERY `<img>` MUST set explicit width & height (reserve space, avoid layout shift) AND an `onError` handler that swaps to a neutral fallback (a solid surface-coloured block, an inline SVG, or another picsum seed URL) so a failed load never shows a broken-image icon.',
-  'For people/avatars use the kit `<Avatar>` (initials fallback), not remote photos.',
-  'A local asset path (`src/assets/...`, `/public/...`) is valid ONLY if you actually create that file; otherwise use the picsum URLs above. Route recurring imagery (logo, hero, og) through `siteConfig`.',
+  'RELEVANCE IS THE BAR: every image must match the product domain AND the section it sits in — a barber site shows barbering, a menu section shows food. One off-topic photo (random nature on a barber page) is as bad as a broken one.',
+  'SOURCE: use ONLY the URLs in the VERIFIED IMAGE LIBRARY block in this prompt — each is confirmed to load and labeled with its subject. Pick by label. Vary sizes via the `w=` query param (1600 hero / 800 card / 400 thumb).',
+  'NEVER use `source.unsplash.com/...` (deprecated — it fails), NEVER use an `images.unsplash.com` id that is not in the library (a guessed id is a broken image), NEVER hotlink arbitrary third-party images.',
+  '`https://picsum.photos/seed/<slug>/<w>/<h>` is allowed ONLY for purely decorative abstract backgrounds where the subject genuinely does not matter — never for products, services, people, places, or any content imagery (it serves random photos). Prefer the library\'s abstract-gradient entries even for those.',
+  'EVERY `<img>` MUST set explicit width & height (reserve space, avoid layout shift) AND an `onError` handler that swaps to a neutral fallback (a solid surface-coloured block or inline SVG) so a failed load never shows a broken-image icon.',
+  'People: use the library\'s portrait entries for testimonials/team; use the kit `<Avatar>` (initials) for signed-in users and dynamic accounts.',
+  'A local asset path (`src/assets/...`, `/public/...`) is valid ONLY if you actually create that file. Route recurring imagery (logo, hero, og) through `siteConfig`.',
 ];
 
-/** For the plan prompt: SPECIFY concrete, loadable image URLs. */
+/** For the plan prompt: SPECIFY concrete, loadable, on-topic image URLs. */
 export const IMAGE_SOURCES_FOR_PLAN = [
-  'IMAGES (must load — specify concrete, loadable URLs, never vague "Unsplash keywords"):',
+  'IMAGES (must load AND match the domain — assign concrete URLs from the library below, never vague "Unsplash keywords"):',
   bullets(IMAGE_REQUIREMENTS),
+  '- In section 5, assign a specific library URL to every image slot the pages need (hero, cards, seed records) so the worker never has to choose blind.',
 ].join('\n');
 
-/** For the full-build worker: every emitted image URL must resolve. */
+/** For the full-build worker: every emitted image must resolve and fit. */
 export const IMAGE_SOURCES_FOR_WORKER = [
-  'IMAGES (every URL must resolve — a broken image fails the visual bar):',
+  'IMAGES (every URL must resolve AND match its section — broken or off-topic imagery fails the visual bar):',
   bullets(IMAGE_REQUIREMENTS),
 ].join('\n');
 
-/** For fix rounds: REPAIR broken/placeholder images. */
+/** For fix rounds: REPAIR broken OR off-topic images. */
 export const IMAGE_SOURCES_FOR_FIX = [
-  'BROKEN IMAGES: replace any `source.unsplash.com/...`, guessed `images.unsplash.com` id, or dead image URL with a `https://picsum.photos/seed/<slug>/<w>/<h>` URL that loads, and add an `onError` fallback to every `<img>` so no broken-image icon can appear.',
+  'IMAGES: an image is defective if it fails to load OR does not match its context (e.g. nature photos on a barber site).',
+  'Replace any `source.unsplash.com/...` URL, any guessed/dead `images.unsplash.com` id, and any off-topic photo with an on-topic image already used elsewhere in the repo (check siteConfig and seed data for the vetted set), and add an `onError` fallback to every `<img>`.',
+  'Do NOT introduce new random-image services (picsum for content imagery) — subject-random photos are how off-topic imagery got in.',
 ].join(' ');
 
 // ── Entity field parity ─────────────────────────────────────────────────────

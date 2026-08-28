@@ -485,6 +485,77 @@ export function describeDesignStyleForPrompt(style: DesignStyle): string {
   ].join('\n');
 }
 
+/* ────────────────────────────────────────────────────────────────────────
+ * Hero treatments
+ *
+ * WHY IN CODE: prompts that say "choose a hero composition that fits" collapse
+ * to the modal choice — every site came out as the same full-bleed photo with
+ * an overlay and two buttons. Like palettes and design styles, the variation
+ * has to be DECIDED here (seeded, deterministic) and MANDATED in the prompt,
+ * not offered as a menu the model will never explore.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+export interface HeroTreatment {
+  id: string;
+  label: string;
+  /** Concrete, implementable composition spec injected into the prompts. */
+  directive: string;
+}
+
+export const HERO_TREATMENTS: HeroTreatment[] = [
+  {
+    id: 'full-bleed',
+    label: 'Full-bleed image',
+    directive:
+      'Full-bleed image hero: a large (70–90vh) domain-relevant image with a dark scrim, left-aligned copy block (kicker, headline, subcopy, two CTAs). Classic and photographic.',
+  },
+  {
+    id: 'split',
+    label: 'Split copy/image',
+    directive:
+      'Split hero: two columns on the neutral page background — headline, subcopy and CTAs on the left; one large domain-relevant image on the right (corners follow the kit radius tokens). No scrim, no full-bleed background.',
+  },
+  {
+    id: 'type-led',
+    label: 'Type-led (no photo)',
+    directive:
+      'Type-led hero: NO hero photograph. An oversized display headline (clamp ~3rem–6.5rem) on the neutral body background, one accent word using .text-gradient, a one-line subcopy and CTA pair, and a thin divider or stat/badge row. Imagery appears only in the NEXT section.',
+  },
+  {
+    id: 'editorial-band',
+    label: 'Editorial headline + image band',
+    directive:
+      'Editorial hero: a compact left-aligned headline block (small uppercase kicker, serif-or-display headline, one-line standfirst) on the surface background, followed directly by a full-width image band (~50vh, domain-relevant) with a small caption. Magazine cover, not poster.',
+  },
+  {
+    id: 'mosaic',
+    label: 'Copy + image mosaic',
+    directive:
+      'Mosaic hero: headline, subcopy and CTAs on the left; on the right a 3-tile image collage (one tall + two stacked, mixed sizes, domain-relevant) with gaps following the spacing rhythm. No full-bleed background.',
+  },
+  {
+    id: 'stacked',
+    label: 'Centered + framed image below',
+    directive:
+      'Stacked hero: centered kicker, headline, subcopy and CTA pair on the neutral background; below them one large framed image or product-screenshot card (border + kit shadow) that slightly overlaps the next section.',
+  },
+];
+
+/** Deterministic per-project hero pick — same seed family as styles/palettes,
+ *  salted so the hero choice is independent of the style choice. */
+export function pickHeroTreatment(seed?: string | null): HeroTreatment {
+  if (!seed) return HERO_TREATMENTS[0];
+  return HERO_TREATMENTS[seedHash(`${seed}:hero`) % HERO_TREATMENTS.length];
+}
+
+/** Render the mandated hero for the plan + worker prompts. */
+export function describeHeroTreatmentForPrompt(hero: HeroTreatment): string {
+  return [
+    `HOME HERO (MANDATED for this project — not a suggestion): ${hero.directive}`,
+    'Design the home page hero to EXACTLY this composition. Do not swap it for a different hero pattern, and adapt inner pages’ headers to a lighter variant of the same language.',
+  ].join('\n');
+}
+
 /** Lightweight option list for surfacing the picker in the questionnaire UI. */
 export const DESIGN_STYLE_OPTIONS: Array<{ id: string; label: string }> = [
   { id: 'auto', label: 'Auto (recommended)' },

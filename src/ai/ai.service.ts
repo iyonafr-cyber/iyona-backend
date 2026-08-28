@@ -31,7 +31,10 @@ import { autoPaletteBasesFromSeed } from '../ui-kit/palette-generator';
 import {
   resolveDesignStyle,
   describeDesignStyleForPrompt,
+  pickHeroTreatment,
+  describeHeroTreatmentForPrompt,
 } from '../ui-kit/ui-kit.constants';
+import { stockImageBlockForIdea } from '../common/stock-images';
 import {
   ENTITY_PARITY_FOR_PLAN,
   DB_SYNC_FOR_PLAN,
@@ -1843,9 +1846,14 @@ Respond with ONLY valid JSON. No markdown code blocks. No extra text.`;
       seed,
       detectArchetype(projectIdea).id,
     );
+    // The hero composition is also DECIDED here (seeded), not offered as a
+    // choice — "pick a hero that fits" collapses to the same full-bleed photo
+    // hero on every build.
+    const heroTreatment = pickHeroTreatment(seed);
     designSystemBlock = [
       designSystemBlock,
       describeDesignStyleForPrompt(designStyle),
+      describeHeroTreatmentForPrompt(heroTreatment),
     ].join('\n');
 
     // ── User preferences from the questionnaire (theme surfaced above) ──
@@ -1951,6 +1959,8 @@ Respond with ONLY valid JSON. No markdown code blocks. No extra text.`;
 
 ${IMAGE_SOURCES_FOR_PLAN}
 
+${stockImageBlockForIdea(projectIdea)}
+
 ${archetypeBlock}
 ${integrationsBlock}${envExampleBlock}${siteConfigBlock}
 
@@ -1977,7 +1987,8 @@ Exact palette hex values, light/dark mode decision, the typographic SCALE (headi
 TYPOGRAPHY: the locked kit already ships THIS project's font family and refined heading weight/tracking/line-height via --font-sans / --font-display. The family is chosen per project — do NOT assume it is SF Pro or name any specific family, and do NOT import a webfont (no Inter, Roboto, Google Fonts). Specify only the type SCALE (heading/body sizes + weights) and rhythm on top of whatever the kit ships; describe tone via scale and spacing, not a font name.
 DESIGN GUARDRAILS (mandatory — a saturated app never looks finished):
 - The page BODY background stays neutral (near-white in light mode / near-black in dark). NEVER paint the whole body or the header in a saturated brand/background hex — map saturated tokens to accents, buttons, badges, and at most tinted section surfaces (≤10% of the viewport).
-- The hero and key sections carry real visual weight — never just text on a flat colour. Choose section treatments that fit THIS product's tone and design personality, and DECIDE them explicitly (name the hero treatment, the CTA treatment, and how they differ). The kit ships utilities you MAY reach for — .bg-gradient-mesh, .bg-gradient-brand, .bg-gradient-subtle, .text-gradient — alongside solid tinted surfaces, bordered/flat editorial bands, and real imagery/product photography. They are a palette of options, NOT a fixed recipe: do not default every project to a gradient-mesh hero + gradient-brand CTA. Pick what suits the brand.
+- The HOME HERO uses the MANDATED composition from the design system block above — restate it in this section and specify its concrete content (headline copy, which library image(s), CTA labels). It is not optional and not swappable.
+- Other key sections still carry real visual weight — never just text on a flat colour. DECIDE each section treatment explicitly (CTA band, feature sections, testimonial band) and vary them within the page. The kit ships utilities you MAY reach for — .bg-gradient-mesh, .bg-gradient-brand, .bg-gradient-subtle, .text-gradient — alongside solid tinted surfaces, bordered/flat editorial bands, and real imagery. A palette of options, NOT a recipe: do not give every section the same treatment.
 - Reserve the Table primitive for admin/back-office/data-dense surfaces. Customer-facing lists (products, articles, projects, listings) are CARD GRIDS, not tables.
 
 ## 3. Motion & animation
@@ -1993,7 +2004,7 @@ Cover EVERY screen in the APP ARCHETYPE manifest above, plus any others the spec
 - **Route** (ASCII path) and **component name** (e.g. PricingPage)
 - **Purpose** (one line)
 - **Layout** (section-by-section, top to bottom) — every page has at least 2–3 substantive sections; the home/landing page has at least 5. Never a bare heading + one paragraph.
-- **Key components & realistic mock data** (concrete names, prices, stats — never "Item 1"). List/index pages name a seed set of at least 12–20 realistic records; for image-bearing content give a concrete loadable image URL per the IMAGE SOURCES rule above (a picsum.photos/seed/... URL), NOT a vague "Unsplash keyword".
+- **Key components & realistic mock data** (concrete names, prices, stats — never "Item 1"). List/index pages name a seed set of at least 12–20 realistic records; for image-bearing content assign a concrete URL from the VERIFIED IMAGE LIBRARY above whose label matches the record, NOT a vague "Unsplash keyword" or a random-image service.
 - **Primary interactions** (filters, forms, modals, navigation). Every button and icon names its destination or behaviour — no decorative/dead controls (e.g. a header cart icon MUST link to the cart route).
 - **Fields** (create/edit screens ONLY): list the form's inputs by field name and control type. This list MUST equal the entity's \`user\` fields in section 6 — every one, same names, nothing invented. Write it out in full rather than saying "the usual fields".
 Plan list/detail/create/edit screens for every CRUD entity and /admin/* for admin areas.

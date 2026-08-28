@@ -7,9 +7,16 @@ import { RepoService } from '../repo/repo.service';
 import { UiKitService } from '../ui-kit/ui-kit.service';
 import { RevisionsService } from '../revisions/revisions.service';
 import { UserProject } from '../projects/entities/user-project.entity';
-import { resolveDesignStyle, DESIGN_STYLES } from '../ui-kit/ui-kit.constants';
+import {
+  resolveDesignStyle,
+  DESIGN_STYLES,
+  describeDesignStyleForPrompt,
+  pickHeroTreatment,
+  describeHeroTreatmentForPrompt,
+} from '../ui-kit/ui-kit.constants';
 import type { PaletteOverrides } from '../ui-kit/ui-kit.constants';
 import { detectArchetype } from '../common/app-archetypes';
+import { stockImageBlockForIdea } from '../common/stock-images';
 import { isManagedProvisioningEnabled } from 'src/supabase/managed-provisioning.flag';
 
 export interface SpecBuildRunHooks {
@@ -214,11 +221,29 @@ export class SpecBuildService {
       `[SpecBuild] Seeded ${Object.keys(kitFiles).length} UI kit files to ${owner}/${repo}@main`,
     );
 
+    // Per-project design context for the WORKER. The worker authors all the
+    // visible markup but its task prompt is static — the persona, palette,
+    // mandated hero and verified image library must be handed to it directly,
+    // not hoped-for via the plan prose. Same resolved style/hero/library the
+    // plan prompt used (same seed + idea), so brain and worker always agree.
+    const designContext = [
+      describeDesignStyleForPrompt(designStyle),
+      input.paletteBases?.primary
+        ? `Brand palette (already seeded as kit tokens): primary ${input.paletteBases.primary}${input.paletteBases.accent ? `, accent ${input.paletteBases.accent}` : ''} — reference via token classes (bg-primary-600 …), never hex literals.`
+        : '',
+      describeHeroTreatmentForPrompt(pickHeroTreatment(projectId)),
+      '',
+      stockImageBlockForIdea(input.projectIdea),
+    ]
+      .filter(Boolean)
+      .join('\n');
+
     const result = await this.cursorService.runFullBuildRound({
       owner,
       repo,
       projectId,
       spec: brief,
+      context: designContext,
     });
     this.logger.log(
       `[SpecBuild] Full build → ${result.status}${result.mergedSha ? ` sha=${result.mergedSha}` : ''}`,
