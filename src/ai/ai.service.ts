@@ -34,6 +34,7 @@ import {
   describeDesignStyleForPrompt,
   pickHeroTreatment,
   describeHeroTreatmentForPrompt,
+  describeBlockPlanForPrompt,
 } from '../ui-kit/ui-kit.constants';
 import { stockImageBlockForIdea } from '../common/stock-images';
 import {
@@ -1859,11 +1860,12 @@ Respond with ONLY valid JSON. No markdown code blocks. No extra text.`;
     // The hero composition is also DECIDED here (seeded), not offered as a
     // choice — "pick a hero that fits" collapses to the same full-bleed photo
     // hero on every build.
-    const heroTreatment = pickHeroTreatment(seed);
+    const heroTreatment = pickHeroTreatment(seed, designStyle);
     designSystemBlock = [
       designSystemBlock,
       describeDesignStyleForPrompt(designStyle),
       describeHeroTreatmentForPrompt(heroTreatment),
+      describeBlockPlanForPrompt(designStyle, seed),
     ].join('\n');
 
     // ── User preferences from the questionnaire (theme surfaced above) ──

@@ -31,6 +31,13 @@ export const KIT_PATHS = [
   'src/components/ui/QuantityStepper.tsx',
   'src/components/ui/Drawer.tsx',
   'src/components/ui/index.ts',
+  // Section blocks. Locked like the primitives: they are what stops every
+  // generated site converging on one hero/header/grid, and an agent free to
+  // "improve" them would undo exactly that.
+  'src/components/blocks/Hero.tsx',
+  'src/components/blocks/SiteHeader.tsx',
+  'src/components/blocks/ItemGrid.tsx',
+  'src/components/blocks/index.ts',
 ] as const;
 
 /**
@@ -81,6 +88,16 @@ export const KIT_MOTION_NAMES = [
   'SmoothScroll',
 ] as const;
 
+/**
+ * Section-level blocks importable from `@/components/blocks`.
+ *
+ * These exist because the agent used to hand-write every hero, header and
+ * product grid from a prose description, and hand-written sections regress to
+ * the mean — which is why every generated site looked alike. Composing from
+ * real variants makes the variation structural instead of hoped-for.
+ */
+export const KIT_BLOCK_NAMES = ['Hero', 'SiteHeader', 'ItemGrid'] as const;
+
 /** Everything importable from `@/components/ui` — the locked surface. */
 export const KIT_COMPONENT_NAMES = [
   ...KIT_PRIMITIVE_NAMES,
@@ -88,7 +105,7 @@ export const KIT_COMPONENT_NAMES = [
   ...KIT_MOTION_NAMES,
 ] as const;
 
-export const UI_KIT_VERSION = 3;
+export const UI_KIT_VERSION = 4;
 
 /**
  * Packages the UI kit itself imports. These are NOT optional and NOT subject to
@@ -260,6 +277,8 @@ export interface DesignStyle {
    * and section treatments toward, so it doesn't fall back to a generic look.
    */
   persona: string;
+  /** Which block variants suit this style. See DesignStyleBlockPrefs. */
+  blocks: DesignStyleBlockPrefs;
 }
 
 // Reusable shadow sets (soft / crisp / elevated).
@@ -297,6 +316,7 @@ export const DESIGN_STYLES: Record<string, DesignStyle> = {
     heading: { weight: '600', tracking: '-0.021em', line: '1.08' },
     persona:
       'Clean minimal — a system sans throughout, restrained tight heading tracking, soft diffuse shadows, small-to-medium rounded corners, cool near-neutral surfaces. Whitespace-led, understated, premium; design with generous air and quiet hierarchy.',
+    blocks: { header: ['classic', 'minimal'], grid: ['cards'], hero: ['stacked', 'split', 'full-bleed'] },
   },
   // Serif headings, warm paper surface — magazine / brand feel.
   editorial: {
@@ -312,6 +332,7 @@ export const DESIGN_STYLES: Record<string, DesignStyle> = {
     heading: { weight: '600', tracking: '-0.008em', line: '1.16' },
     persona:
       'Magazine editorial — a serif display face on headings over a humanist sans body, warm paper-toned surfaces, crisp hairline shadows, nearly-square corners. Generous leading and classic print hierarchy; calm, authoritative, content-first. Lean on editorial imagery and pull-quotes, not gradients.',
+    blocks: { header: ['stacked', 'split', 'classic'], grid: ['editorial-bordered', 'cards'], hero: ['editorial-band', 'type-led', 'split'] },
   },
   // Geometric sans, cool surface, generous radius — modern SaaS.
   geometric: {
@@ -327,6 +348,7 @@ export const DESIGN_STYLES: Record<string, DesignStyle> = {
     heading: { weight: '700', tracking: '-0.02em', line: '1.1' },
     persona:
       'Modern SaaS — a geometric sans, bold heavy headings with tight tracking, generous rounded corners, elevated layered shadows, cool blue-gray surfaces. Confident, techy, high-contrast; design with clear product screenshots, feature grids, and crisp CTA bands.',
+    blocks: { header: ['classic', 'split'], grid: ['cards', 'dark-band'], hero: ['split', 'stacked', 'mosaic'] },
   },
   // Soft, friendly, pill-ish corners — consumer / lifestyle.
   rounded: {
@@ -342,6 +364,7 @@ export const DESIGN_STYLES: Record<string, DesignStyle> = {
     heading: { weight: '800', tracking: '-0.015em', line: '1.12' },
     persona:
       'Friendly consumer — a warm humanist sans, very heavy rounded headings, large pill-like corners, soft shadows, warm surfaces. Approachable, playful, lifestyle; design with rounded cards, bright accents, and cheerful imagery.',
+    blocks: { header: ['classic', 'minimal'], grid: ['cards'], hero: ['split', 'stacked', 'full-bleed'] },
   },
   // Sharp corners, crisp elevation, neutral grays — corporate / trust.
   corporate: {
@@ -357,6 +380,7 @@ export const DESIGN_STYLES: Record<string, DesignStyle> = {
     heading: { weight: '700', tracking: '-0.005em', line: '1.15' },
     persona:
       'Corporate / trust — a neutral sans, sharp near-square corners, crisp tight shadows, neutral gray surfaces, restrained heading weight. Dense, professional, no-nonsense; design with structured columns, clear data, and understated accents rather than playful flourishes.',
+    blocks: { header: ['classic', 'bordered-bar'], grid: ['cards', 'editorial-bordered'], hero: ['split', 'stacked', 'editorial-band'] },
   },
   // TRUE zero-radius: every corner is a hard 90°. Gallery / fashion / luxury /
   // architecture feel — structure comes from lines and borders, not roundness.
@@ -373,8 +397,41 @@ export const DESIGN_STYLES: Record<string, DesignStyle> = {
     heading: { weight: '700', tracking: '-0.02em', line: '1.05' },
     persona:
       'Sharp / zero-radius — hard 90° corners on EVERYTHING (buttons, cards, inputs, badges — zero border-radius), a crisp grotesque sans, tight uppercase-friendly headings, hairline borders and crisp shadows, neutral high-contrast surfaces. Gallery / fashion / luxury / architecture feel; structure comes from lines, borders and grid rules — NOT rounded corners. In your OWN markup use square corners too (no rounded-* utilities), lean on borders and full-bleed imagery.',
+    blocks: { header: ['bordered-bar', 'split', 'minimal'], grid: ['editorial-bordered', 'dark-band'], hero: ['type-led', 'editorial-band', 'mosaic'] },
   },
 };
+
+/** Header compositions shipped by the SiteHeader block. */
+export const SITE_HEADER_VARIANTS = [
+  'classic',
+  'split',
+  'stacked',
+  'minimal',
+  'bordered-bar',
+] as const;
+export type SiteHeaderVariantId = (typeof SITE_HEADER_VARIANTS)[number];
+
+/** Grid compositions shipped by the ItemGrid block. */
+export const ITEM_GRID_VARIANTS = [
+  'cards',
+  'editorial-bordered',
+  'dark-band',
+] as const;
+export type ItemGridVariantId = (typeof ITEM_GRID_VARIANTS)[number];
+
+/**
+ * Which block variants suit each design style.
+ *
+ * Variety alone is not the goal — an incoherent mix (pill-soft cards under a
+ * hairline gallery header) looks worse than sameness. Seeding picks WITHIN the
+ * style's pool, so a project is both distinct from other projects and
+ * internally consistent.
+ */
+export interface DesignStyleBlockPrefs {
+  header: readonly SiteHeaderVariantId[];
+  grid: readonly ItemGridVariantId[];
+  hero: readonly string[];
+}
 
 export const DEFAULT_DESIGN_STYLE_ID = 'apple';
 
@@ -543,9 +600,48 @@ export const HERO_TREATMENTS: HeroTreatment[] = [
 
 /** Deterministic per-project hero pick — same seed family as styles/palettes,
  *  salted so the hero choice is independent of the style choice. */
-export function pickHeroTreatment(seed?: string | null): HeroTreatment {
-  if (!seed) return HERO_TREATMENTS[0];
-  return HERO_TREATMENTS[seedHash(`${seed}:hero`) % HERO_TREATMENTS.length];
+export function pickHeroTreatment(
+  seed?: string | null,
+  style?: DesignStyle,
+): HeroTreatment {
+  // Restrict to the style's own pool when we know it: a gallery-sharp project
+  // reaching for a soft full-bleed photo hero is variety at the cost of
+  // coherence, which reads as worse, not more interesting.
+  const pool = style
+    ? HERO_TREATMENTS.filter((h) => style.blocks.hero.includes(h.id))
+    : HERO_TREATMENTS;
+  const list = pool.length ? pool : HERO_TREATMENTS;
+  if (!seed) return list[0];
+  return list[seedHash(`${seed}:hero`) % list.length];
+}
+
+/**
+ * Deterministic per-slot variant pick, drawn from the design style's own pool.
+ * Salted per slot so the header, hero and grid choices are independent of each
+ * other while all staying stable for a given project.
+ */
+function pickFromPool<T extends string>(
+  pool: readonly T[],
+  seed: string | null | undefined,
+  slot: string,
+): T {
+  if (!pool.length) throw new Error(`empty variant pool for ${slot}`);
+  if (!seed) return pool[0];
+  return pool[seedHash(`${seed}:${slot}`) % pool.length];
+}
+
+export function pickSiteHeaderVariant(
+  style: DesignStyle,
+  seed?: string | null,
+): SiteHeaderVariantId {
+  return pickFromPool(style.blocks.header, seed, 'header');
+}
+
+export function pickItemGridVariant(
+  style: DesignStyle,
+  seed?: string | null,
+): ItemGridVariantId {
+  return pickFromPool(style.blocks.grid, seed, 'grid');
 }
 
 /** Render the mandated hero for the plan + worker prompts. */
@@ -553,6 +649,31 @@ export function describeHeroTreatmentForPrompt(hero: HeroTreatment): string {
   return [
     `HOME HERO (MANDATED for this project — not a suggestion): ${hero.directive}`,
     'Design the home page hero to EXACTLY this composition. Do not swap it for a different hero pattern, and adapt inner pages’ headers to a lighter variant of the same language.',
+  ].join('\n');
+}
+
+/**
+ * The block plan for a project: which locked section components to compose,
+ * with the variant already chosen.
+ *
+ * This is the part that used to be prose. Describing a hero in English and
+ * asking a second model to rebuild it is a lossy channel — it lands on the
+ * safest reading, which is the same hero every time. Naming a component and a
+ * variant is not lossy.
+ */
+export function describeBlockPlanForPrompt(
+  style: DesignStyle,
+  seed?: string | null,
+): string {
+  const header = pickSiteHeaderVariant(style, seed);
+  const hero = pickHeroTreatment(seed, style);
+  const grid = pickItemGridVariant(style, seed);
+  return [
+    'SECTION BLOCKS (locked, import from "@/components/blocks") — COMPOSE these; do NOT hand-write these three sections:',
+    `- <SiteHeader variant="${header}" /> — the site header for THIS project. Props: wordmark, links[], action, mobileMenu, renderLink (use it to render your router's Link).`,
+    `- <Hero variant="${hero.id}" /> — the home hero for THIS project. Props: eyebrow, headline, accentWord, subcopy, primaryAction, secondaryAction, image, images, stats[], renderAction. ${hero.directive}`,
+    `- <ItemGrid variant="${grid}" /> — product / listing / article grids. Props: items[] ({id,title,eyebrow,description,meta,href,image}), columns, renderItem, emptyState.`,
+    'These variants were chosen FOR this project and are what make it look different from every other generated site: do not substitute another variant, and do not re-implement these sections by hand. Everything else on the page is yours to compose from the kit primitives.',
   ].join('\n');
 }
 
