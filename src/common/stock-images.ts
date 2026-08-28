@@ -42,6 +42,102 @@ export const stockImageUrl = (id: string, width = 1600): string =>
 
 export const STOCK_TOPICS: StockTopic[] = [
   {
+    id: 'footwear',
+    label: 'Shoes / sneakers / footwear',
+    // Listed FIRST and matched before `fashion`: a shoe brand used to match
+    // fashion's `shoe|sneaker` keywords and receive clothing racks, leaving the
+    // brain no product photography and pushing it to order hand-drawn SVG shoes.
+    match:
+      /\b(shoes?|sneakers?|footwear|trainers?|boots?|heels?|sandals?|loafers?|chaussures?)\b/i,
+    images: [
+      { id: 'photo-1542291026-7eec264c27ff', alt: 'red running sneaker on a red background, product shot' },
+      { id: 'photo-1600185365483-26d7a4cc7519', alt: 'white and orange running shoe floating on grey' },
+      { id: 'photo-1560769629-975ec94e6a86', alt: 'pair of colourful sneakers staged on white blocks' },
+      { id: 'photo-1549298916-b41d501d3772', alt: 'tan leather low-top sneaker on mustard fabric' },
+      { id: 'photo-1595950653106-6c9ebd614d3a', alt: 'pastel low-top sneaker on a pastel geometric background' },
+      { id: 'photo-1491553895911-0055eca6402d', alt: 'black performance sneaker on white, laces suspended' },
+      { id: 'photo-1608231387042-66d1773070a5', alt: 'pastel high-top sneaker on crumpled paper' },
+      { id: 'photo-1543163521-1bf539c55dd2', alt: 'white leather tennis sneaker on black' },
+      { id: 'photo-1520639888713-7851133b1ed0', alt: 'brown leather lace-up boots being tied' },
+      { id: 'photo-1533867617858-e7b97e060509', alt: 'brown leather monk-strap dress shoe, dark wood' },
+      { id: 'photo-1584735175315-9d5df23860e6', alt: 'blue floral high-heeled shoes on a pale plinth' },
+    ],
+  },
+  {
+    id: 'furniture',
+    label: 'Furniture / homeware',
+    match: /\b(furniture|sofa|couch|chair|table|homeware|mattress|meubles?)\b/i,
+    images: [
+      { id: 'photo-1555041469-a586c61ea9bc', alt: 'green velvet sofa against a white wall' },
+      { id: 'photo-1567538096630-e0c55bd6374c', alt: 'cream tufted armchair on a pale background' },
+      { id: 'photo-1538688525198-9b88f6f53126', alt: 'furnished loft showroom with sofa and chairs' },
+    ],
+  },
+  {
+    id: 'jewelry',
+    label: 'Jewellery / watches / accessories',
+    match: /\b(jewel(le)?ry|jewel|necklace|bracelet|earrings?|ring|watch(es)?|bijoux)\b/i,
+    images: [
+      { id: 'photo-1515562141207-7a88fb7ce338', alt: 'pearl necklace in an open presentation box' },
+      { id: 'photo-1611591437281-460bfbe1220a', alt: 'rose-gold diamond bracelet on pink' },
+      { id: 'photo-1599643478518-a784e5dc4c8f', alt: 'layered gold necklaces with gemstone pendants' },
+    ],
+  },
+  {
+    id: 'plants',
+    label: 'Plants / florist / garden',
+    match: /\b(plants?|florist|flowers?|garden(ing)?|nursery|succulent|botanic\w*|fleuriste)\b/i,
+    images: [
+      { id: 'photo-1485955900006-10f4d324d411', alt: 'succulent in a mint ceramic pot on white' },
+      { id: 'photo-1416879595882-3373a0480b5b', alt: 'potting soil and scoop, gardening flat-lay' },
+      { id: 'photo-1466692476868-aef1dfb1e735', alt: 'seedlings sprouting in a propagation tray' },
+    ],
+  },
+  {
+    id: 'bakery',
+    label: 'Bakery / pastry / desserts',
+    // Before `food`, whose images are restaurant interiors and plated dinners.
+    match:
+      /\b(baker(y|ies)|boulangerie|p[aâ]tisserie|pastry|pastries|bread|cake|cupcakes?|dessert|donuts?|croissants?)\b/i,
+    images: [
+      { id: 'photo-1509440159596-0249088772ff', alt: 'rustic sourdough loaves with wheat ears' },
+      { id: 'photo-1555507036-ab1f4038808a', alt: 'croissant dusted with sugar on dark slate' },
+      { id: 'photo-1486427944299-d1955d23e34d', alt: 'row of cupcakes with mint frosting and sprinkles' },
+    ],
+  },
+  {
+    id: 'tech',
+    label: 'Consumer electronics / devices',
+    match:
+      /\b(electronics?|gadgets?|devices?|headphones?|laptops?|smartphones?|camera|audio|hardware store)\b/i,
+    images: [
+      { id: 'photo-1498049794561-7780e7231661', alt: 'headphones, watch and phone on a white desk' },
+      { id: 'photo-1517336714731-489689fd1ca8', alt: 'open laptop lit in purple and blue' },
+      { id: 'photo-1526170375885-4d8ecf77b99f', alt: 'instant camera on a white surface, product shot' },
+    ],
+  },
+  {
+    id: 'pets',
+    label: 'Pets / veterinary / grooming',
+    match:
+      /\b(pets?|dogs?|cats?|puppy|kitten|veterinar\w*|v[eé]t[eé]rinaire|grooming salon|animal(s)? (care|clinic))\b/i,
+    images: [
+      { id: 'photo-1583511655857-d19b40a7a54e', alt: 'french bulldog in a yellow shirt on blue' },
+      { id: 'photo-1548199973-03cce0bbc87b', alt: 'two dogs running together on a path' },
+      { id: 'photo-1450778869180-41d0601e046e', alt: 'cat and dog curled up together in grass' },
+    ],
+  },
+  {
+    id: 'bike',
+    label: 'Bicycles / cycling',
+    match: /\b(bicycles?|bikes?|cycling|cyclist|v[eé]lo)\b/i,
+    images: [
+      { id: 'photo-1485965120184-e220f721d03e', alt: 'silver fixed-gear bicycle against a dark wall' },
+      { id: 'photo-1507035895480-2b3156c31fc8', alt: 'orange-wheeled bicycle against a white wall' },
+      { id: 'photo-1532298229144-0ec0c57515c7', alt: 'black road bicycle on a dark background' },
+    ],
+  },
+  {
     id: 'barber',
     label: 'Barber / hair salon / grooming',
     match:
@@ -127,7 +223,7 @@ export const STOCK_TOPICS: StockTopic[] = [
     id: 'interior',
     label: 'Real estate / interior / architecture',
     match:
-      /\breal ?estate|immobilier|property|interior|furniture|architect|home|house|apartment|decor|renovation|construction\b/i,
+      /\breal ?estate|immobilier|property|interior|architect|house|apartment|villa|decor|renovation|construction\b/i,
     images: [
       { id: 'photo-1600585154340-be6161a56a0c', alt: 'modern house exterior at dusk, lawn' },
       { id: 'photo-1600607687939-ce8a6c25118c', alt: 'open-plan living room, grey sofa, wood wall' },
@@ -232,6 +328,7 @@ export function stockImageBlockForIdea(idea: string): string {
   }
   lines.push(
     'Usage: pick images whose LABEL matches what the surface shows — a barber page gets barbering imagery, a testimonial gets a portrait; never use a photo whose label is unrelated to the section. Reuse library images across pages and request other sizes by changing `w=` (e.g. w=800 for cards, w=400 for thumbs). For entity seed data that needs MORE distinct images than the library has, cycle through the topic list rather than inventing new ids.',
+    "NO IMAGE FOR THIS PRODUCT? Say so and design around it — do NOT improvise artwork. NEVER hand-draw representational images: no SVG, CSS or canvas illustrations of shoes, food, faces, cars, buildings, or any real-world object. A model-drawn product render reads as broken, not stylish, and looks far worse than no photo at all. Instead use a TYPOGRAPHIC TILE: the item name set in the project's display type on a token surface (bg-surface-100 / bg-primary-900), with its category as a small uppercase eyebrow and a hairline border. That reads as a deliberate editorial choice. Abstract, non-representational shapes (rules, grids, dots, gradients) are fine as decoration.",
   );
   return lines.join('\n');
 }
