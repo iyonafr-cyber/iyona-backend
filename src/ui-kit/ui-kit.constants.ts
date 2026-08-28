@@ -37,6 +37,11 @@ export const KIT_PATHS = [
   'src/components/blocks/Hero.tsx',
   'src/components/blocks/SiteHeader.tsx',
   'src/components/blocks/ItemGrid.tsx',
+  'src/components/blocks/SiteFooter.tsx',
+  'src/components/blocks/FeatureGrid.tsx',
+  'src/components/blocks/TestimonialBand.tsx',
+  'src/components/blocks/CTABand.tsx',
+  'src/components/blocks/SectionHeading.tsx',
   'src/components/blocks/index.ts',
 ] as const;
 
@@ -96,7 +101,16 @@ export const KIT_MOTION_NAMES = [
  * the mean — which is why every generated site looked alike. Composing from
  * real variants makes the variation structural instead of hoped-for.
  */
-export const KIT_BLOCK_NAMES = ['Hero', 'SiteHeader', 'ItemGrid'] as const;
+export const KIT_BLOCK_NAMES = [
+  'Hero',
+  'SiteHeader',
+  'SiteFooter',
+  'ItemGrid',
+  'FeatureGrid',
+  'TestimonialBand',
+  'CTABand',
+  'SectionHeading',
+] as const;
 
 /** Everything importable from `@/components/ui` — the locked surface. */
 export const KIT_COMPONENT_NAMES = [
@@ -105,7 +119,7 @@ export const KIT_COMPONENT_NAMES = [
   ...KIT_MOTION_NAMES,
 ] as const;
 
-export const UI_KIT_VERSION = 4;
+export const UI_KIT_VERSION = 5;
 
 /**
  * Packages the UI kit itself imports. These are NOT optional and NOT subject to
@@ -316,7 +330,7 @@ export const DESIGN_STYLES: Record<string, DesignStyle> = {
     heading: { weight: '600', tracking: '-0.021em', line: '1.08' },
     persona:
       'Clean minimal — a system sans throughout, restrained tight heading tracking, soft diffuse shadows, small-to-medium rounded corners, cool near-neutral surfaces. Whitespace-led, understated, premium; design with generous air and quiet hierarchy.',
-    blocks: { header: ['classic', 'minimal'], grid: ['cards'], hero: ['stacked', 'split', 'full-bleed'] },
+    blocks: { header: ['classic', 'minimal'], footer: ['columns-4', 'minimal-row'], features: ['cards', 'icon-row'], testimonials: ['portrait-quotes', 'single-large'], cta: ['centered', 'split'], heading: ['centered', 'left'], grid: ['cards'], hero: ['stacked', 'split', 'full-bleed'] },
   },
   // Serif headings, warm paper surface — magazine / brand feel.
   editorial: {
@@ -332,7 +346,7 @@ export const DESIGN_STYLES: Record<string, DesignStyle> = {
     heading: { weight: '600', tracking: '-0.008em', line: '1.16' },
     persona:
       'Magazine editorial — a serif display face on headings over a humanist sans body, warm paper-toned surfaces, crisp hairline shadows, nearly-square corners. Generous leading and classic print hierarchy; calm, authoritative, content-first. Lean on editorial imagery and pull-quotes, not gradients.',
-    blocks: { header: ['stacked', 'split', 'classic'], grid: ['editorial-bordered', 'cards'], hero: ['editorial-band', 'type-led', 'split'] },
+    blocks: { header: ['stacked', 'split', 'classic'], footer: ['editorial', 'bordered-grid'], features: ['rule-grid', 'alternating'], testimonials: ['single-large', 'tinted-band'], cta: ['bordered', 'centered'], heading: ['inline-rule', 'left'], grid: ['editorial-bordered', 'cards'], hero: ['editorial-band', 'type-led', 'split'] },
   },
   // Geometric sans, cool surface, generous radius — modern SaaS.
   geometric: {
@@ -348,7 +362,7 @@ export const DESIGN_STYLES: Record<string, DesignStyle> = {
     heading: { weight: '700', tracking: '-0.02em', line: '1.1' },
     persona:
       'Modern SaaS — a geometric sans, bold heavy headings with tight tracking, generous rounded corners, elevated layered shadows, cool blue-gray surfaces. Confident, techy, high-contrast; design with clear product screenshots, feature grids, and crisp CTA bands.',
-    blocks: { header: ['classic', 'split'], grid: ['cards', 'dark-band'], hero: ['split', 'stacked', 'mosaic'] },
+    blocks: { header: ['classic', 'split'], footer: ['columns-4', 'editorial'], features: ['cards', 'icon-row'], testimonials: ['portrait-quotes', 'tinted-band'], cta: ['dark-inverted', 'split'], heading: ['left', 'centered'], grid: ['cards', 'dark-band'], hero: ['split', 'stacked', 'mosaic'] },
   },
   // Soft, friendly, pill-ish corners — consumer / lifestyle.
   rounded: {
@@ -364,7 +378,7 @@ export const DESIGN_STYLES: Record<string, DesignStyle> = {
     heading: { weight: '800', tracking: '-0.015em', line: '1.12' },
     persona:
       'Friendly consumer — a warm humanist sans, very heavy rounded headings, large pill-like corners, soft shadows, warm surfaces. Approachable, playful, lifestyle; design with rounded cards, bright accents, and cheerful imagery.',
-    blocks: { header: ['classic', 'minimal'], grid: ['cards'], hero: ['split', 'stacked', 'full-bleed'] },
+    blocks: { header: ['classic', 'minimal'], footer: ['columns-4', 'minimal-row'], features: ['cards', 'icon-row'], testimonials: ['portrait-quotes', 'tinted-band'], cta: ['split', 'centered'], heading: ['centered', 'left'], grid: ['cards'], hero: ['split', 'stacked', 'full-bleed'] },
   },
   // Sharp corners, crisp elevation, neutral grays — corporate / trust.
   corporate: {
@@ -380,7 +394,7 @@ export const DESIGN_STYLES: Record<string, DesignStyle> = {
     heading: { weight: '700', tracking: '-0.005em', line: '1.15' },
     persona:
       'Corporate / trust — a neutral sans, sharp near-square corners, crisp tight shadows, neutral gray surfaces, restrained heading weight. Dense, professional, no-nonsense; design with structured columns, clear data, and understated accents rather than playful flourishes.',
-    blocks: { header: ['classic', 'bordered-bar'], grid: ['cards', 'editorial-bordered'], hero: ['split', 'stacked', 'editorial-band'] },
+    blocks: { header: ['classic', 'bordered-bar'], footer: ['columns-4', 'bordered-grid'], features: ['rule-grid', 'cards'], testimonials: ['portrait-quotes', 'single-large'], cta: ['bordered', 'split'], heading: ['left', 'inline-rule'], grid: ['cards', 'editorial-bordered'], hero: ['split', 'stacked', 'editorial-band'] },
   },
   // TRUE zero-radius: every corner is a hard 90°. Gallery / fashion / luxury /
   // architecture feel — structure comes from lines and borders, not roundness.
@@ -397,7 +411,7 @@ export const DESIGN_STYLES: Record<string, DesignStyle> = {
     heading: { weight: '700', tracking: '-0.02em', line: '1.05' },
     persona:
       'Sharp / zero-radius — hard 90° corners on EVERYTHING (buttons, cards, inputs, badges — zero border-radius), a crisp grotesque sans, tight uppercase-friendly headings, hairline borders and crisp shadows, neutral high-contrast surfaces. Gallery / fashion / luxury / architecture feel; structure comes from lines, borders and grid rules — NOT rounded corners. In your OWN markup use square corners too (no rounded-* utilities), lean on borders and full-bleed imagery.',
-    blocks: { header: ['bordered-bar', 'split', 'minimal'], grid: ['editorial-bordered', 'dark-band'], hero: ['type-led', 'editorial-band', 'mosaic'] },
+    blocks: { header: ['bordered-bar', 'split', 'minimal'], footer: ['bordered-grid', 'editorial'], features: ['rule-grid', 'alternating'], testimonials: ['tinted-band', 'single-large'], cta: ['bordered', 'dark-inverted'], heading: ['inline-rule', 'left'], grid: ['editorial-bordered', 'dark-band'], hero: ['type-led', 'editorial-band', 'mosaic'] },
   },
 };
 
@@ -419,6 +433,44 @@ export const ITEM_GRID_VARIANTS = [
 ] as const;
 export type ItemGridVariantId = (typeof ITEM_GRID_VARIANTS)[number];
 
+export const SITE_FOOTER_VARIANTS = [
+  'columns-4',
+  'minimal-row',
+  'editorial',
+  'bordered-grid',
+] as const;
+export type SiteFooterVariantId = (typeof SITE_FOOTER_VARIANTS)[number];
+
+export const FEATURE_GRID_VARIANTS = [
+  'rule-grid',
+  'cards',
+  'icon-row',
+  'alternating',
+] as const;
+export type FeatureGridVariantId = (typeof FEATURE_GRID_VARIANTS)[number];
+
+export const TESTIMONIAL_VARIANTS = [
+  'portrait-quotes',
+  'tinted-band',
+  'single-large',
+] as const;
+export type TestimonialVariantId = (typeof TESTIMONIAL_VARIANTS)[number];
+
+export const CTA_BAND_VARIANTS = [
+  'bordered',
+  'split',
+  'centered',
+  'dark-inverted',
+] as const;
+export type CTABandVariantId = (typeof CTA_BAND_VARIANTS)[number];
+
+export const SECTION_HEADING_VARIANTS = [
+  'left',
+  'centered',
+  'inline-rule',
+] as const;
+export type SectionHeadingVariantId = (typeof SECTION_HEADING_VARIANTS)[number];
+
 /**
  * Which block variants suit each design style.
  *
@@ -429,7 +481,12 @@ export type ItemGridVariantId = (typeof ITEM_GRID_VARIANTS)[number];
  */
 export interface DesignStyleBlockPrefs {
   header: readonly SiteHeaderVariantId[];
+  footer: readonly SiteFooterVariantId[];
   grid: readonly ItemGridVariantId[];
+  features: readonly FeatureGridVariantId[];
+  testimonials: readonly TestimonialVariantId[];
+  cta: readonly CTABandVariantId[];
+  heading: readonly SectionHeadingVariantId[];
   hero: readonly string[];
 }
 
@@ -644,6 +701,22 @@ export function pickItemGridVariant(
   return pickFromPool(style.blocks.grid, seed, 'grid');
 }
 
+export function pickSiteFooterVariant(style: DesignStyle, seed?: string | null) {
+  return pickFromPool(style.blocks.footer, seed, 'footer');
+}
+export function pickFeatureGridVariant(style: DesignStyle, seed?: string | null) {
+  return pickFromPool(style.blocks.features, seed, 'features');
+}
+export function pickTestimonialVariant(style: DesignStyle, seed?: string | null) {
+  return pickFromPool(style.blocks.testimonials, seed, 'testimonials');
+}
+export function pickCTABandVariant(style: DesignStyle, seed?: string | null) {
+  return pickFromPool(style.blocks.cta, seed, 'cta');
+}
+export function pickSectionHeadingVariant(style: DesignStyle, seed?: string | null) {
+  return pickFromPool(style.blocks.heading, seed, 'heading');
+}
+
 /** Render the mandated hero for the plan + worker prompts. */
 export function describeHeroTreatmentForPrompt(hero: HeroTreatment): string {
   return [
@@ -669,10 +742,15 @@ export function describeBlockPlanForPrompt(
   const hero = pickHeroTreatment(seed, style);
   const grid = pickItemGridVariant(style, seed);
   return [
-    'SECTION BLOCKS (locked, import from "@/components/blocks") — COMPOSE these; do NOT hand-write these three sections:',
+    'SECTION BLOCKS (locked, import from "@/components/blocks") — COMPOSE these; do NOT hand-write these sections:',
     `- <SiteHeader variant="${header}" /> — the site header for THIS project. Props: wordmark, links[], action, mobileMenu, renderLink (use it to render your router's Link).`,
     `- <Hero variant="${hero.id}" /> — the home hero for THIS project. Props: eyebrow, headline, accentWord, subcopy, primaryAction, secondaryAction, image, images, stats[], renderAction. ${hero.directive}`,
     `- <ItemGrid variant="${grid}" /> — product / listing / article grids. Props: items[] ({id,title,eyebrow,description,meta,href,image}), columns, renderItem, emptyState.`,
+    `- <SiteFooter variant="${pickSiteFooterVariant(style, seed)}" /> — Props: wordmark, blurb, groups[] ({title,links[]}), note, social, renderLink.`,
+    `- <FeatureGrid variant="${pickFeatureGridVariant(style, seed)}" /> — the benefits / "why us" section. Props: features[] ({title,description,icon,image}), columns.`,
+    `- <TestimonialBand variant="${pickTestimonialVariant(style, seed)}" /> — Props: testimonials[] ({quote,name,role,avatar}).`,
+    `- <CTABand variant="${pickCTABandVariant(style, seed)}" /> — the closing conversion band. Props: eyebrow, title, copy, action.`,
+    `- <SectionHeading variant="${pickSectionHeadingVariant(style, seed)}" /> — open EVERY section with this. Props: eyebrow, title, copy.`,
     'These variants were chosen FOR this project and are what make it look different from every other generated site: do not substitute another variant, and do not re-implement these sections by hand. Everything else on the page is yours to compose from the kit primitives.',
   ].join('\n');
 }
