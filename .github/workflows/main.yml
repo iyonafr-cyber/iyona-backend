@@ -69,7 +69,47 @@ jobs:
             # ── 2. Pull and build the new revision ───────────────────────
             git fetch origin
             git reset --hard "$DEPLOY_SHA"
+
+            # Disk pressure on this box is the usual reason an install ends
+            # up incomplete, so record it before we touch anything.
+            echo "── disk before install ──"
+            df -h . || true
+
+            # `npm ci` can exit 0 having written only part of the tree (an
+            # interrupted or space-starved extract). When that happens the
+            # failure surfaces as a wall of TS2307 "cannot find module" plus
+            # TS6053 for typescript's own lib files — misleading, because the
+            # code is fine and only the install is broken. These sentinels are
+            # the exact paths that were missing when it last happened.
+            verify_modules() {
+              local missing=0 p
+              for p in \
+                node_modules/typescript/lib/lib.es2021.full.d.ts \
+                node_modules/@nestjs/config/package.json \
+                node_modules/@octokit/rest/package.json \
+                node_modules/@sentry/node/package.json \
+                node_modules/pg/package.json \
+                node_modules/rxjs/package.json
+              do
+                if [ ! -e "$p" ]; then
+                  echo "   missing: $p"
+                  missing=1
+                fi
+              done
+              return $missing
+            }
+
             npm ci
+            if ! verify_modules; then
+              echo "⚠️  npm ci left an incomplete node_modules — reinstalling from clean"
+              rm -rf node_modules
+              npm cache verify || npm cache clean --force || true
+              npm ci
+              # Still incomplete: fail here with the paths listed above rather
+              # than in the compiler, and leave PM2 on the last good build.
+              verify_modules
+            fi
+
             npm run build
 
             # Sanity check: nest build must produce dist/main.js. If it
