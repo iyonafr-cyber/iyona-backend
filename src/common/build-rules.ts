@@ -77,6 +77,7 @@ const IMAGE_REQUIREMENTS = [
   'NEVER use `source.unsplash.com/...` (deprecated — it fails), NEVER use an `images.unsplash.com` id that is not in the library (a guessed id is a broken image), NEVER hotlink arbitrary third-party images.',
   '`https://picsum.photos/seed/<slug>/<w>/<h>` is allowed ONLY for purely decorative abstract backgrounds where the subject genuinely does not matter — never for products, services, people, places, or any content imagery (it serves random photos). Prefer the library\'s abstract-gradient entries even for those.',
   'EVERY `<img>` MUST set explicit width & height (reserve space, avoid layout shift) AND an `onError` handler that swaps to a neutral fallback (a solid surface-coloured block or inline SVG) so a failed load never shows a broken-image icon.',
+  "NEVER hand-draw representational artwork to fill an image gap — no SVG/CSS/canvas illustrations of products, food, faces, vehicles or buildings. A model-drawn product render reads as broken, not stylish. When the library has no image for the product, use a typographic tile (item name in the display type on a token surface, category eyebrow, hairline border) — a deliberate design choice beats a bad drawing.",
   'People: use the library\'s portrait entries for testimonials/team; use the kit `<Avatar>` (initials) for signed-in users and dynamic accounts.',
   'A local asset path (`src/assets/...`, `/public/...`) is valid ONLY if you actually create that file. Route recurring imagery (logo, hero, og) through `siteConfig`.',
 ];
