@@ -460,8 +460,12 @@ const FULL_BUILD_TASK = [
 ].join('\n');
 
 /** Compose the full-build agent prompt: worker task + per-project design
- *  context + the LLM-written development plan. */
-function buildFullBuildPrompt(spec: string, context?: string): string {
+ *  context + the LLM-written development plan.
+ *
+ *  Exported so the build job can persist the EXACT text the agent received.
+ *  Recording a reconstruction instead would defeat the purpose the moment the
+ *  task or the context assembly changed. */
+export function buildFullBuildPrompt(spec: string, context?: string): string {
   // The plan is sent VERBATIM — never clipped. The Cursor Cloud Agents API
   // documents no limit on prompt.text, and the worst case here (this task
   // ~4k tokens + context ~1k + a plan at generateBuildSpec's 18k-token

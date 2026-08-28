@@ -312,6 +312,23 @@ export class SpecBuildJobService {
                 },
               );
             },
+            // Archive what the brain wrote and what the agent was actually
+            // given, for admin review. Best-effort by design: losing the
+            // archive is a diagnostics gap, not a reason to fail the build.
+            onAgentPromptReady: async ({ brief, agentPrompt }) => {
+              try {
+                await this.jobModel.updateOne(
+                  { _id: jobId },
+                  { $set: { brief, agentPrompt } },
+                );
+              } catch (err) {
+                this.logger.warn(
+                  `[SpecBuildJob] Could not persist build prompt for job ${jobId}: ${
+                    err instanceof Error ? err.message : String(err)
+                  }`,
+                );
+              }
+            },
           },
         );
 
