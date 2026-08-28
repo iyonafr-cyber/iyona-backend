@@ -99,6 +99,15 @@ export interface FullBuildInput {
   projectId: string;
   /** The markdown development plan produced by AiService.generateBuildSpec. */
   spec: string;
+  /**
+   * Project-specific design context (design-style persona, palette, mandated
+   * hero composition, verified image library), composed by SpecBuildService.
+   * WHY: the worker authors all the visible markup, but FULL_BUILD_TASK is
+   * static — without this block the per-project variation only reaches the
+   * worker if the plan prose happens to restate it, which is exactly how every
+   * site converged on one look. Injected verbatim into the agent prompt.
+   */
+  context?: string;
 }
 
 /** Input for {@link CursorService.askCodebaseQuestion} (read-only repo Q&A). */
@@ -372,6 +381,7 @@ const FULL_BUILD_TASK = [
   KIT_USAGE_HINT,
   'The kit ships light + dark styles (Tailwind `dark:` / prefers-color-scheme); mirror that in your own markup.',
   'TYPOGRAPHY: the kit sets THIS project\'s font via --font-sans / --font-display (chosen per project — do NOT assume SF Pro or any specific family) plus refined heading tracking/weight. In src/index.css do NOT set a font-family and do NOT import a Google font (no Inter/Roboto) — just `@import "./styles/ui-kit.css";` then `@import "tailwindcss";`. Follow the type SCALE the plan specifies on top of the kit font.',
+  'OWN-MARKUP TOKENS (why every site used to look identical — do NOT skip this): in the markup YOU write (heroes, sections, custom cards, banners), corners and colors MUST flow through the kit tokens, never hardcoded Tailwind steps. Corners: use `rounded-[var(--radius-sm|md|lg|xl)]` — NEVER `rounded-md/lg/xl/2xl/3xl` literals on surfaces, because this project\'s corner language (which may be fully square, 0px) must apply to everything, not just kit components. Pills/chips: `rounded-[var(--radius-full)]`. Circular avatars/dots are the only `rounded-full` exception. Brand color: token classes (`bg-primary-600`, `text-accent-500`, `bg-surface-100`) — never hex literals in className/styles.',
   IMAGE_SOURCES_FOR_WORKER,
   'SECTION BACKGROUNDS: keep the page body neutral, but give heroes and key sections real depth — never plain text on a flat colour. The kit ships gradient utilities you MAY use — `.bg-gradient-mesh`, `.bg-gradient-brand`, `.bg-gradient-subtle`, `.text-gradient` — but they are a menu, not a formula: pick the section treatment that fits THIS product and its design style (a gradient, a solid tinted surface, a bordered/flat editorial band, or real imagery), and vary the hero and CTA treatments rather than defaulting every site to a gradient-mesh hero. Follow the plan\'s Design language section when it specifies a treatment.',
   '',
@@ -395,7 +405,7 @@ const FULL_BUILD_TASK = [
   `3. ${DB_SYNC_SELF_CHECK}`,
   '4. ADMIN SURFACE (when /admin exists): open an admin page and a public page side by side — they must look like different products. No public Header/Footer import anywhere under pages/admin/, sidebar present, tables not card grids, neutral surfaces. Then confirm every stored entity has list + new + edit routes wired in the router, and that /admin/settings saves values the public footer or contact page actually reads back.',
   '5. Every seed record fills every field in its entity table (especially images) — no blank spots in a rendered card.',
-  '5b. IMAGES LOAD: no `<img>` uses source.unsplash.com or a guessed/dead URL; every image is a loadable URL (picsum seed URLs by default) and has an onError fallback. A broken-image icon anywhere is a failure.',
+  '5b. IMAGES LOAD AND FIT: no `<img>` uses source.unsplash.com, a guessed/dead URL, or a random-image service for content imagery; every image comes from the VERIFIED IMAGE LIBRARY (or a local asset you created), MATCHES what its section is about, and has an onError fallback. A broken-image icon OR an off-topic photo (nature shots on a barber site) anywhere is a failure.',
   '6. No dead controls: every button, icon, and link navigates or performs an action.',
   '7. No placeholder content: no Lorem, no "Feature One/Two/Three", no TODO, no page that is just a heading and a paragraph.',
   '8. Mutable state survives a reload (localStorage for mock-mode apps; Supabase rows for DB-backed entities).',
@@ -409,17 +419,27 @@ const FULL_BUILD_TASK = [
   'Create a PR targeting `main`. When checks pass, squash-merge into `main`, or enable GitHub auto-merge to `main` if the integration supports it.',
 ].join('\n');
 
-/** Compose the full-build agent prompt: worker task + the LLM-written development plan. */
-function buildFullBuildPrompt(spec: string): string {
+/** Compose the full-build agent prompt: worker task + per-project design
+ *  context + the LLM-written development plan. */
+function buildFullBuildPrompt(spec: string, context?: string): string {
   // The plan is sent VERBATIM — never clipped. The Cursor Cloud Agents API
   // documents no limit on prompt.text, and the worst case here (this task
-  // ~4k tokens + a plan at generateBuildSpec's 18k-token ceiling) is ~22k
-  // tokens against composer-2's 200k window. Tail-clipping would silently
-  // drop sections 8-10 (dependencies, build order, acceptance checklist) —
-  // the worker's PR gate — which is exactly the truncated-contract failure
-  // generateBuildSpec already refuses to ship.
+  // ~4k tokens + context ~1k + a plan at generateBuildSpec's 18k-token
+  // ceiling) is ~23k tokens against composer-2's 200k window. Tail-clipping
+  // would silently drop sections 8-10 (dependencies, build order, acceptance
+  // checklist) — the worker's PR gate — which is exactly the
+  // truncated-contract failure generateBuildSpec already refuses to ship.
   return [
     FULL_BUILD_TASK,
+    ...(context?.trim()
+      ? [
+          '',
+          '---',
+          'PROJECT DESIGN CONTEXT (binding — applies on top of the plan; if the plan conflicts with the image library or hero mandate here, THIS section wins):',
+          '',
+          context.trim(),
+        ]
+      : []),
     '',
     '---',
     'DEVELOPMENT PLAN:',
@@ -939,10 +959,10 @@ export class CursorService {
         'CursorService is not configured: set CURSOR_API_KEY in the environment',
       );
     }
-    const { owner, repo, projectId, spec } = input;
+    const { owner, repo, projectId, spec, context } = input;
     const repoHttps = `https://github.com/${owner}/${repo}`;
     const branch = `iyona/build-${projectId}-${Date.now()}`;
-    const prompt = buildFullBuildPrompt(spec);
+    const prompt = buildFullBuildPrompt(spec, context);
 
     this.logger.log(
       `[Cursor] Full build branch=${branch} project=${projectId} specChars=${spec.length}`,
