@@ -75,6 +75,32 @@ export class SpecBuildJob extends Document {
   @Prop({ type: [String], default: [] })
   loadingFiles: string[];
 
+  /**
+   * The FULL DEVELOPMENT PLAN the LLM "brain" wrote for this build.
+   *
+   * Kept so a disappointing app can be traced back to the instruction that
+   * produced it: nearly every output problem we have chased (same layout
+   * everywhere, off-topic imagery, a 10-page app for a "simple" request) was a
+   * defect in this text rather than in the agent. Without it, diagnosis means
+   * guessing at a prompt that was never recorded.
+   *
+   * Admin-only; never returned on a user-facing endpoint.
+   */
+  @Prop({ type: String, required: false, select: false })
+  brief?: string;
+
+  /**
+   * The exact prompt handed to the Cursor agent: worker task + per-project
+   * design context + the plan above. Stored separately from `brief` because
+   * the static task and the design context are what the plan does NOT say, and
+   * that difference is usually where the answer is.
+   *
+   * `select: false` on both — these run tens of KB each and must never load on
+   * an ordinary job read (status polling hits this collection constantly).
+   */
+  @Prop({ type: String, required: false, select: false })
+  agentPrompt?: string;
+
   @Prop({ type: Object, required: false })
   estimate?: {
     buildSeconds: number;

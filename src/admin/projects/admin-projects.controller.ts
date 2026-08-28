@@ -94,6 +94,17 @@ export class AdminProjectsController {
     return { data };
   }
 
+  /**
+   * Archived build instructions (plan + exact agent prompt) for this project.
+   * Its own route because the payload is large and only wanted on demand —
+   * see AdminProjectsService.buildArtifacts.
+   */
+  @Get(':id/build-artifacts')
+  async buildArtifacts(@Param('id') id: string) {
+    const data = await this.adminProjects.buildArtifacts(id);
+    return { data };
+  }
+
   @Patch(':id')
   async patch(
     @Param('id') id: string,

@@ -8,6 +8,7 @@ import {
   WorkflowStatus,
 } from '../../projects/entities/user-project.entity';
 import { Chat } from '../../projects/entities/chat.entity';
+import { SpecBuildJob } from '../../spec-build/entities/spec-build-job.entity';
 import { AuditActor, AuditLogService } from '../audit/audit-log.service';
 import { secureRandomSlug } from '../../common/secure-random';
 
@@ -49,6 +50,17 @@ export interface AdminProjectDetail {
   counts: { chats: number };
 }
 
+/** One archived build: what the brain wrote, and what the agent was given. */
+export interface AdminBuildArtifact {
+  id: string;
+  status: string | null;
+  projectIdea: string | null;
+  /** null for builds that ran before archiving shipped. */
+  brief: string | null;
+  agentPrompt: string | null;
+  createdAt: string | null;
+}
+
 @Injectable()
 export class AdminProjectsService {
   constructor(
@@ -56,8 +68,56 @@ export class AdminProjectsService {
     private readonly projectModel: Model<UserProject>,
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Chat.name) private readonly chatModel: Model<Chat>,
+    @InjectModel(SpecBuildJob.name)
+    private readonly specBuildJobModel: Model<SpecBuildJob>,
     private readonly audit: AuditLogService,
   ) {}
+
+  /**
+   * The archived build instructions for a project: for each build, the plan the
+   * LLM brain wrote and the exact prompt the Cursor agent received.
+   *
+   * Deliberately its own endpoint rather than part of `detail()`. Each record
+   * is tens of KB, and `detail()` is loaded every time an admin opens a
+   * project — nobody should pay for this payload unless they asked to read it.
+   * `brief` and `agentPrompt` are `select: false` on the schema, so they must
+   * be requested explicitly here.
+   */
+  async buildArtifacts(
+    projectId: string,
+    limit = 5,
+  ): Promise<AdminBuildArtifact[]> {
+    if (!Types.ObjectId.isValid(projectId)) {
+      throw new NotFoundException('Project not found');
+    }
+    const jobs = await this.specBuildJobModel
+      .find({ projectId: new Types.ObjectId(projectId) })
+      .select('+brief +agentPrompt')
+      .sort({ createdAt: -1 })
+      .limit(Math.min(20, Math.max(1, limit)))
+      .lean<
+        Array<{
+          _id: Types.ObjectId;
+          status?: string;
+          projectIdea?: string;
+          brief?: string;
+          agentPrompt?: string;
+          createdAt?: Date;
+        }>
+      >()
+      .exec();
+
+    return jobs.map((job) => ({
+      id: String(job._id),
+      status: job.status ?? null,
+      projectIdea: job.projectIdea ?? null,
+      // Builds that ran before this feature shipped have no archive; the UI
+      // says so rather than rendering an empty box that looks like a bug.
+      brief: job.brief ?? null,
+      agentPrompt: job.agentPrompt ?? null,
+      createdAt: job.createdAt ? job.createdAt.toISOString() : null,
+    }));
+  }
 
   async list(query: AdminProjectListQuery): Promise<AdminProjectListResult> {
     const page = Math.max(1, Number(query.page) || 1);

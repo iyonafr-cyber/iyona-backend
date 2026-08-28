@@ -6,6 +6,10 @@ import {
   UserProjectSchema,
 } from '../../projects/entities/user-project.entity';
 import { Chat, ChatSchema } from '../../projects/entities/chat.entity';
+import {
+  SpecBuildJob,
+  SpecBuildJobSchema,
+} from '../../spec-build/entities/spec-build-job.entity';
 import { AuthModule } from '../../auth/auth.module';
 import { UserModule } from '../../user/user.module';
 import { AuditModule } from '../audit/audit.module';
@@ -18,6 +22,7 @@ import { AdminProjectsController } from './admin-projects.controller';
       { name: User.name, schema: UserSchema },
       { name: UserProject.name, schema: UserProjectSchema },
       { name: Chat.name, schema: ChatSchema },
+      { name: SpecBuildJob.name, schema: SpecBuildJobSchema },
     ]),
     forwardRef(() => AuthModule),
     forwardRef(() => UserModule),

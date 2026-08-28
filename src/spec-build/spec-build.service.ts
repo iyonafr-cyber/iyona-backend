@@ -2,7 +2,10 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { AiService, AiCallContext, BuildSpecEstimate } from '../ai/ai.service';
-import { CursorService } from '../cursor/cursor.service';
+import {
+  CursorService,
+  buildFullBuildPrompt,
+} from '../cursor/cursor.service';
 import { RepoService } from '../repo/repo.service';
 import { UiKitService } from '../ui-kit/ui-kit.service';
 import { RevisionsService } from '../revisions/revisions.service';
@@ -25,6 +28,16 @@ export interface SpecBuildRunHooks {
     brief: string;
     estimate: BuildSpecEstimate;
     loadingFiles: string[];
+  }) => void | Promise<void>;
+  /**
+   * Fired once the agent prompt is composed, immediately before the Cursor run
+   * starts. Carries the plan and the exact prompt so the caller can archive
+   * both for later diagnosis. Separate from onBriefReady because the design
+   * context — and therefore the prompt — does not exist that early.
+   */
+  onAgentPromptReady?: (payload: {
+    brief: string;
+    agentPrompt: string;
   }) => void | Promise<void>;
 }
 
@@ -237,6 +250,22 @@ export class SpecBuildService {
     ]
       .filter(Boolean)
       .join('\n');
+
+    // Archive the plan and the exact prompt before the run — composed with the
+    // same function the agent call uses, so what is stored is what was sent.
+    // Best-effort: a failed archive write must never abort a paid build.
+    try {
+      await hooks?.onAgentPromptReady?.({
+        brief,
+        agentPrompt: buildFullBuildPrompt(brief, designContext),
+      });
+    } catch (err) {
+      this.logger.warn(
+        `[SpecBuild] Could not archive build prompt for ${projectId}: ${
+          err instanceof Error ? err.message : String(err)
+        }`,
+      );
+    }
 
     const result = await this.cursorService.runFullBuildRound({
       owner,
