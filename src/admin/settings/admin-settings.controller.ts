@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
 import {
   IsBoolean,
+  IsObject,
   IsOptional,
   IsString,
   MaxLength,
@@ -30,6 +31,16 @@ export class PatchAdminSettingsDto {
   @IsString()
   @MaxLength(120)
   cursorAgentModelId?: string | null;
+
+  /**
+   * Cursor model params ({effort: 'high', fast: 'true'}…) — ids/values come
+   * from Cursor's live catalogue rendered in the dashboard; the service layer
+   * sanitizes entries. null clears them.
+   */
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @IsObject()
+  cursorAgentModelParams?: Record<string, string> | null;
 }
 
 @Controller('admin/settings')

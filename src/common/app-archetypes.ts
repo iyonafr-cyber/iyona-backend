@@ -529,10 +529,81 @@ export const ADMIN_PANEL_MANIFEST = [
   'ADMIN ACCESS: admins sign in through the SAME /login as everyone else and are redirected to /admin on success, while customers go to the home page. Do not build a separate admin login, and never build an admin signup.',
 ].join('\n');
 
+/* ── Build scope ─────────────────────────────────────────────────────────────
+ *
+ * WHY: the archetype manifest is a FLOOR, and it used to be the same floor for
+ * every request — "a simple landing page for my barber shop" still became a
+ * 10+ route app with an admin back office, which is the single biggest driver
+ * of 15-minute agent runs. A request that clearly asks for something small
+ * gets a COMPACT floor: the archetype's core pages only, lean seed data, and
+ * no auth/admin unless the idea explicitly implies them.
+ */
+
+export type BuildScope = 'compact' | 'full';
+
+/** How many manifest pages (in priority order) a compact build keeps. */
+const COMPACT_CORE_PAGES = 3;
+
+/**
+ * Signals that the user wants something small. Deliberately conservative:
+ * false negatives cost nothing (full build, as today), false positives ship a
+ * thin app — so only unambiguous phrasings match. "single-page app(lication)"
+ * is excluded: that names the SPA architecture, not a scope.
+ */
+const COMPACT_SIGNALS: RegExp[] = [
+  /\b(simple|basic|minimal(ist)?|small|lightweight|tiny|quick)\b/i,
+  /\blanding ?page\b/i,
+  /\bone[- ]pager?\b/i,
+  /\bsingle[- ]page\b(?!\s*app)/i,
+  /\bbrochure\b/i,
+  /\b(site )?vitrine\b/i, // FR: brochure/showcase site
+  /\bjust (a|one|the)\b/i,
+  /\b(simple|petit|basique|minimaliste)\b/i, // FR
+];
+
+/** Detect the requested build scope from the idea text. */
+export function detectBuildScope(idea: string): BuildScope {
+  const text = idea || '';
+  return COMPACT_SIGNALS.some((re) => re.test(text)) ? 'compact' : 'full';
+}
+
+/** Non-auth pages a compact build keeps, in manifest (priority) order. */
+function compactCorePages(
+  archetype: AppArchetype,
+  impliesAuth: boolean,
+): ArchetypePage[] {
+  const core = archetype.pages
+    .filter((p) => !['login', 'signup', 'admin', 'account'].includes(p.key))
+    .slice(0, COMPACT_CORE_PAGES);
+  if (impliesAuth) core.push(AUTH_LOGIN, AUTH_SIGNUP);
+  return core;
+}
+
 export function buildArchetypeManifestBlock(
   archetype: AppArchetype,
   impliesAuth: boolean,
+  scope: BuildScope = 'full',
 ): string {
+  if (scope === 'compact') {
+    const core = compactCorePages(archetype, impliesAuth);
+    const lines: string[] = [
+      `APP ARCHETYPE: ${archetype.label} (auto-detected from the request) — COMPACT BUILD.`,
+      'The request asks for something SMALL. Plan a lean, polished site around exactly these core screens (each still a full subsection in section 5 with route, layout, mock data, and interactions):',
+    ];
+    for (const page of core) lines.push(`- ${page.label}`);
+    lines.push(
+      `Add a page beyond these ONLY when the request explicitly names it. Aim for ${core.length}–${core.length + 2} routes total — small and finished beats large and thin.`,
+      'COMPACT overrides for the section-5 defaults: seed sets of 6–10 realistic records are enough for list pages; skip the admin back office entirely unless the request asks for one; every page must still be content-rich and designed — compact scope shrinks the PAGE COUNT, never the quality bar.',
+    );
+    for (const g of archetype.guidance) lines.push(`- ${g}`);
+    if (impliesAuth) {
+      lines.push(
+        'ROLES DETECTED: plan a mock auth system — an AuthContext, /login and /signup pages, role-guarded routes, demo credentials shown on the login card, session persisted to localStorage.',
+      );
+    }
+    return lines.join('\n');
+  }
+
   const lines: string[] = [
     `APP ARCHETYPE: ${archetype.label} (auto-detected from the request).`,
     `A "${archetype.label}" is only COMPLETE when the plan includes AT MINIMUM these screens. Plan every one as a full subsection in section 5 (Pages), each with its own route, layout, mock data, and interactions:`,
@@ -603,9 +674,22 @@ export function lintPlanAgainstArchetype(
   brief: string,
   archetype: AppArchetype,
   impliesAuth: boolean,
+  scope: BuildScope = 'full',
 ): PlanLintResult {
   const text = brief || '';
-  const missingPages = archetype.pages.filter(
+  // The lint must enforce the SAME floor the manifest asked for: linting a
+  // compact plan against the full manifest would trigger an amendment round
+  // that pads the plan back to 10+ routes — undoing the scope and re-adding
+  // a full 18k-token brain generation.
+  const mandatoryPages =
+    scope === 'compact'
+      ? compactCorePages(archetype, impliesAuth)
+      : archetype.pages;
+  const minPages =
+    scope === 'compact'
+      ? Math.min(archetype.minPages, mandatoryPages.length)
+      : archetype.minPages;
+  const missingPages = mandatoryPages.filter(
     (page) => !page.patterns.some((re) => re.test(text)),
   );
   const routeCount = countPlanRoutes(text);
@@ -616,14 +700,14 @@ export function lintPlanAgainstArchetype(
   const entityViolations = lintPlanEntityContracts(text);
   const ok =
     missingPages.length === 0 &&
-    routeCount >= archetype.minPages &&
+    routeCount >= minPages &&
     !missingAuth &&
     entityViolations.length === 0;
   return {
     ok,
     archetypeId: archetype.id,
     routeCount,
-    minPages: archetype.minPages,
+    minPages,
     missingPages,
     missingAuth,
     entityViolations,

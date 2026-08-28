@@ -110,6 +110,26 @@ export interface FullBuildInput {
   context?: string;
 }
 
+/** One permitted value of a Cursor model parameter (e.g. effort=high). */
+export interface CursorModelParamValue {
+  value: string;
+  displayName?: string;
+}
+
+/** A parameter a Cursor model accepts (effort, reasoning, thinking, fast…). */
+export interface CursorModelParameter {
+  id: string;
+  displayName?: string;
+  values: CursorModelParamValue[];
+}
+
+/** One entry of Cursor's live model catalogue (GET /v1/models). */
+export interface CursorAgentModel {
+  id: string;
+  displayName?: string;
+  parameters: CursorModelParameter[];
+}
+
 /** Input for {@link CursorService.askCodebaseQuestion} (read-only repo Q&A). */
 export interface CodebaseQuestionInput {
   owner: string;
@@ -667,7 +687,7 @@ export class CursorService {
       const created = await this.createAgentWithRetry(
         {
           prompt: { text: prompt },
-          model: { id: await this.resolveModelId() },
+          model: await this.resolveModelSelection(),
           repos: [{ url: repoHttps, startingRef: 'main' }],
           autoCreatePR: false,
         },
@@ -1153,7 +1173,7 @@ export class CursorService {
           ? { images: imageUrls.map((url) => ({ url })) }
           : {}),
       },
-      model: { id: await this.resolveModelId() },
+      model: await this.resolveModelSelection(),
       repos: [{ url: repoHttps, startingRef: 'main' }],
       autoCreatePR: true,
     };
@@ -1434,14 +1454,14 @@ export class CursorService {
   }
 
   /**
-   * Model ids Cursor will accept, straight from its own catalogue.
-   *
-   * The admin dashboard needs this because the coding model is NOT one of our
-   * catalogue ids — sending `gemini-3-1-high` here would just fail the run.
-   * Returns [] when Cursor is unreachable so the UI degrades to a text field
-   * rather than blocking the whole settings page.
+   * The full model catalogue straight from Cursor — ids, display names, and
+   * each model's parameters (effort/reasoning/thinking/fast/context) with
+   * their permitted values. The admin dashboard renders this so the model AND
+   * its effort are picked from live Cursor data, never a hardcoded list that
+   * goes stale. Returns [] when Cursor is unreachable so the UI degrades to a
+   * text field rather than blocking the whole settings page.
    */
-  async listAgentModels(): Promise<string[]> {
+  async listAgentModelCatalog(): Promise<CursorAgentModel[]> {
     if (!this.apiKey) return [];
     try {
       const res = await fetch(`${this.baseUrl}/v1/models`, {
@@ -1452,23 +1472,72 @@ export class CursorService {
       });
       if (!res.ok) return [];
       const body = (await res.json()) as {
+        items?: unknown;
         models?: unknown;
         data?: unknown;
       };
-      const raw = Array.isArray(body.models)
-        ? body.models
-        : Array.isArray(body.data)
-          ? body.data
-          : [];
-      return raw
-        .map((m) =>
-          typeof m === 'string'
-            ? m
-            : ((m as { id?: string; name?: string })?.id ??
-              (m as { name?: string })?.name ??
-              ''),
-        )
-        .filter((id): id is string => typeof id === 'string' && id.length > 0);
+      const raw = Array.isArray(body.items)
+        ? body.items
+        : Array.isArray(body.models)
+          ? body.models
+          : Array.isArray(body.data)
+            ? body.data
+            : [];
+      const catalog: CursorAgentModel[] = [];
+      for (const m of raw) {
+        if (typeof m === 'string') {
+          if (m) catalog.push({ id: m, parameters: [] });
+          continue;
+        }
+        const rec = m as Record<string, unknown>;
+        const id =
+          typeof rec.id === 'string'
+            ? rec.id
+            : typeof rec.name === 'string'
+              ? rec.name
+              : '';
+        if (!id) continue;
+        const parameters: CursorModelParameter[] = [];
+        if (Array.isArray(rec.parameters)) {
+          for (const p of rec.parameters) {
+            const pr = p as Record<string, unknown>;
+            if (typeof pr.id !== 'string' || !Array.isArray(pr.values)) {
+              continue;
+            }
+            const values = pr.values
+              .map((v): CursorModelParamValue | null => {
+                const vr = v as Record<string, unknown>;
+                return typeof vr.value === 'string'
+                  ? {
+                      value: vr.value,
+                      displayName:
+                        typeof vr.displayName === 'string'
+                          ? vr.displayName
+                          : undefined,
+                    }
+                  : null;
+              })
+              .filter((v): v is CursorModelParamValue => v !== null);
+            if (values.length > 0) {
+              parameters.push({
+                id: pr.id,
+                displayName:
+                  typeof pr.displayName === 'string'
+                    ? pr.displayName
+                    : undefined,
+                values,
+              });
+            }
+          }
+        }
+        catalog.push({
+          id,
+          displayName:
+            typeof rec.displayName === 'string' ? rec.displayName : undefined,
+          parameters,
+        });
+      }
+      return catalog;
     } catch (err) {
       this.logger.warn(
         `[Cursor] Could not list agent models: ${
@@ -1479,25 +1548,53 @@ export class CursorService {
     }
   }
 
+  /** Flat id list — kept for callers that only need names. */
+  async listAgentModels(): Promise<string[]> {
+    return (await this.listAgentModelCatalog()).map((m) => m.id);
+  }
+
   /**
-   * Model the agent should author code with.
+   * Model the agent should author code with, as the full `model` object for
+   * the agent create body: the id plus any admin-configured model params
+   * (effort/reasoning/thinking/fast) in the `{ id, value }` array shape
+   * Cursor's POST /v1/agents expects.
    *
    * Resolved per run, not cached at construction: an admin changing the
    * coding model in the dashboard must affect the next build, not require a
    * redeploy. Precedence: admin setting → CURSOR_AGENT_MODEL_ID → composer-2.
+   * Params are only attached when the admin also configured the model id —
+   * env-fallback runs stay bare so a stale param record can never poison the
+   * default model.
    */
-  private async resolveModelId(): Promise<string> {
+  private async resolveModelSelection(): Promise<{
+    id: string;
+    params?: Array<{ id: string; value: string }>;
+  }> {
     try {
       const settings = await this.adminSettings.get();
       const configured = settings?.cursorAgentModelId?.trim();
-      if (configured) return configured;
+      if (configured) {
+        const raw = settings?.cursorAgentModelParams;
+        const params =
+          raw && typeof raw === 'object' && !Array.isArray(raw)
+            ? Object.entries(raw)
+                .filter(
+                  (e): e is [string, string] =>
+                    typeof e[1] === 'string' && e[1].trim().length > 0,
+                )
+                .map(([id, value]) => ({ id, value: value.trim() }))
+            : [];
+        return params.length > 0
+          ? { id: configured, params }
+          : { id: configured };
+      }
     } catch (err) {
       this.logger.warn(
         `[Cursor] Could not read the configured agent model, using ` +
           `${this.envModelId}: ${err instanceof Error ? err.message : err}`,
       );
     }
-    return this.envModelId;
+    return { id: this.envModelId };
   }
 
   private async createAgent(body: object): Promise<CursorAgentResponse> {
