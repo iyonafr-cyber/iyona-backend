@@ -70,6 +70,12 @@ async function bootstrap() {
   // Configure allowed origins for CORS
   // When credentials: true, you cannot use origin: '*'
   const allowedOrigins = [
+    // Iyona production domains (see rebrand.md — these must also be listed as
+    // Authorized JavaScript origins on the Google OAuth client, or the
+    // sign-in popup fails with `origin_mismatch` before it ever reaches us).
+    'https://iyona.fr',
+    'https://www.iyona.fr',
+    // Vercel deploys — still the live frontend until the domain cutover.
     'https://iyona-front.vercel.app',
     'https://iyona-admin.vercel.app',
     'https://jarvis-fe-nine.vercel.app',
