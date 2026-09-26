@@ -31,22 +31,6 @@ export class PatchAdminProjectDto {
   @MaxLength(200)
   name?: string;
 
-  // E5 — admin can curate templates from any project. The `isPublic`
-  // toggle here is also exposed so admins can publish a project on
-  // behalf of an owner who can't (e.g. takedown-recovery flows).
-  @IsOptional()
-  @IsBoolean()
-  isTemplate?: boolean;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(64)
-  templateCategory?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  isPublic?: boolean;
-
   @IsOptional()
   @IsString()
   @MaxLength(500)

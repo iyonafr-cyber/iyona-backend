@@ -6,7 +6,6 @@ import { ProjectPatchService } from './project-patch.service';
 import { ProjectMapperService } from './project-mapper.service';
 import { SupabaseProvisioningService } from './supabase-provisioning.service';
 import { SupabaseConnectionService } from './supabase-connection.service';
-import { PublicProjectsService } from './public-projects.service';
 import { ProjectSettingsService } from './project-settings.service';
 import { ProjectsController } from './projects.controller';
 import { ChatsController } from './chats.controller';
@@ -23,7 +22,6 @@ import {
 } from './entities/project-error.entity';
 import { ProjectErrorsService } from './project-errors.service';
 import { User, UserSchema } from 'src/user/entities/user.entity';
-import { PublicProjectsController } from './public-projects.controller';
 import {
   ProjectMember,
   ProjectMemberSchema,
@@ -87,7 +85,6 @@ import { RevisionsModule } from 'src/revisions/revisions.module';
     ProjectMapperService,
     SupabaseProvisioningService,
     SupabaseConnectionService,
-    PublicProjectsService,
     ProjectSettingsService,
     ProjectMembersService,
     CustomDomainService,
@@ -99,7 +96,6 @@ import { RevisionsModule } from 'src/revisions/revisions.module';
     ProjectMembersController,
     CustomDomainController,
     ProjectsController,
-    PublicProjectsController,
     ChatsController,
     WorkspaceController,
   ],

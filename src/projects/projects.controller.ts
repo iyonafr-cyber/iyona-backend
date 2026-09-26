@@ -16,7 +16,6 @@ import {
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { ProjectPatchService } from './project-patch.service';
-import { PublicProjectsService } from './public-projects.service';
 import { ProjectSettingsService } from './project-settings.service';
 import { UserProjectDto } from './dto/user-project-dto.dto';
 import { CreateUserProjectDto } from './dto/create-user-project.dto';
@@ -57,7 +56,6 @@ import {
 import { Response } from 'express';
 import { CreditsGuard } from '../credits/guards/credits.guard';
 import { CreditAction } from '../credits/decorator/credit-action.decorator';
-import { RemixProjectDto, SetPublicProjectDto } from './dto/public-project.dto';
 import { ProjectErrorsService } from './project-errors.service';
 import { ProjectAccessService } from './project-access.service';
 import {
@@ -76,7 +74,6 @@ export class ProjectsController {
     private readonly projectErrorsService: ProjectErrorsService,
     private readonly projectAccessService: ProjectAccessService,
     private readonly projectPatchService: ProjectPatchService,
-    private readonly publicProjectsService: PublicProjectsService,
     private readonly projectSettingsService: ProjectSettingsService,
     private readonly supabaseConnectionService: SupabaseConnectionService,
   ) {}
@@ -532,38 +529,6 @@ export class ProjectsController {
       version,
       body?.filePaths,
     );
-  }
-
-  // ──────────────────────────────────────────────────────────────────
-  //  E5 — Public projects + remix
-  // ──────────────────────────────────────────────────────────────────
-
-  @Put(':id/public')
-  async setPublic(
-    @Param('id') id: string,
-    @Body() dto: SetPublicProjectDto,
-    @CurrentUser() user: CurrentUserPayload,
-  ): Promise<{ data: UserProjectDto }> {
-    const project = await this.publicProjectsService.setPublicVisibility(
-      id,
-      user.userId,
-      dto,
-    );
-    return { data: project };
-  }
-
-  @Post(':id/remix')
-  async remix(
-    @Param('id') id: string,
-    @Body() dto: RemixProjectDto,
-    @CurrentUser() user: CurrentUserPayload,
-  ): Promise<{ data: UserProjectDto }> {
-    const project = await this.publicProjectsService.remixProject(
-      id,
-      user.userId,
-      dto,
-    );
-    return { data: project };
   }
 
   // ──────────────────────────────────────────────────────────────────

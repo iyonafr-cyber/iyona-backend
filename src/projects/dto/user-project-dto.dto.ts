@@ -276,31 +276,6 @@ export class UserProjectDto {
   )
   updatedAt: Date;
 
-  // ── E5 — public projects + remix + templates ───────────────────
-  @Expose()
-  isPublic?: boolean;
-
-  @Expose()
-  publicSlug?: string;
-
-  @Expose()
-  @Transform(({ value }) =>
-    value === undefined || value === null ? null : String(value),
-  )
-  remixOf?: string | null;
-
-  @Expose()
-  remixCount?: number;
-
-  @Expose()
-  isTemplate?: boolean;
-
-  @Expose()
-  templateCategory?: string;
-
-  @Expose()
-  publicSummary?: string;
-
   // ANALYTICS CONFIGURATION (E13)
   @Expose()
   @Type(() => AnalyticsConfigDto)
