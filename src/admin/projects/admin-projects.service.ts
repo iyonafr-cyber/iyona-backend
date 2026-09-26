@@ -10,7 +10,6 @@ import {
 import { Chat } from '../../projects/entities/chat.entity';
 import { SpecBuildJob } from '../../spec-build/entities/spec-build-job.entity';
 import { AuditActor, AuditLogService } from '../audit/audit-log.service';
-import { secureRandomSlug } from '../../common/secure-random';
 
 export interface AdminProjectListQuery {
   q?: string;
@@ -26,10 +25,6 @@ export interface AdminProjectPatch {
   takedown?: boolean;
   locked?: boolean;
   name?: string;
-  /** E5 — admin curates templates from any project. */
-  isTemplate?: boolean;
-  templateCategory?: string;
-  isPublic?: boolean;
   reason?: string;
 }
 
@@ -168,11 +163,6 @@ export class AdminProjectsService {
               deployment: 1,
               createdAt: 1,
               updatedAt: 1,
-              isPublic: 1,
-              publicSlug: 1,
-              isTemplate: 1,
-              templateCategory: 1,
-              remixCount: 1,
               'owner._id': 1,
               'owner.email': 1,
               'owner.role': 1,
@@ -257,53 +247,6 @@ export class AdminProjectsService {
       update.name = dto.name;
       before.name = existing.name ?? null;
       after.name = dto.name;
-    }
-
-    if (
-      dto.isTemplate !== undefined &&
-      dto.isTemplate !== Boolean(existing.isTemplate)
-    ) {
-      update.isTemplate = dto.isTemplate;
-      // Templates are inherently public — flip both flags together so
-      // a curator marking a project as a template can't accidentally
-      // ship one that's still hidden.
-      if (dto.isTemplate && !existing.isPublic) {
-        update.isPublic = true;
-      }
-      before.isTemplate = Boolean(existing.isTemplate);
-      after.isTemplate = dto.isTemplate;
-    }
-
-    if (
-      dto.templateCategory !== undefined &&
-      dto.templateCategory !== existing.templateCategory
-    ) {
-      update.templateCategory = dto.templateCategory;
-      before.templateCategory = existing.templateCategory ?? null;
-      after.templateCategory = dto.templateCategory;
-    }
-
-    if (
-      dto.isPublic !== undefined &&
-      dto.isPublic !== Boolean(existing.isPublic)
-    ) {
-      update.isPublic = dto.isPublic;
-      // Allocate a slug on first publish if one doesn't exist yet so
-      // the project is reachable at /p/:slug as soon as the admin
-      // clicks the toggle. Mirrors the owner-facing setPublic flow.
-      if (dto.isPublic && !existing.publicSlug) {
-        const seed =
-          (existing.name || existing.initialPrompt || 'project')
-            .toLowerCase()
-            .normalize('NFKD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '')
-            .slice(0, 50) || 'project';
-        update.publicSlug = `${seed}-${secureRandomSlug(5).toLowerCase()}`;
-      }
-      before.isPublic = Boolean(existing.isPublic);
-      after.isPublic = dto.isPublic;
     }
 
     if (Object.keys(update).length === 0) {

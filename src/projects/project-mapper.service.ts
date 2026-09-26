@@ -8,7 +8,7 @@ import type { IEncryptionService } from 'src/encryption/interface/encryption.int
 /**
  * Maps a `UserProject` entity/document to the wire-safe `UserProjectDto`.
  * Extracted from `ProjectsService` so every service that returns a project DTO
- * (workflow, secrets, public/remix, supabase, …) shares ONE mapper — and one
+ * (workflow, secrets, supabase, …) shares ONE mapper — and one
  * definition of which fields are secret.
  *
  * Two responsibilities that must never be skipped:

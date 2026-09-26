@@ -55,6 +55,19 @@ jobs:
 
             cd ~/iyona-backend
 
+            # ── 0. Reclaim disk before touching the build ────────────────
+            #
+            # The root volume is ~7GB with a 1GB swapfile. A full disk fails
+            # the dist.prev copy below (exit 1) before git even moves, and
+            # the same pressure leaves `npm ci` with a partial node_modules.
+            # Caches and PM2 logs are safe to drop; the running app is not.
+            npm cache clean --force >/dev/null 2>&1 || true
+            if [ -d "${HOME}/.pm2/logs" ]; then
+              find "${HOME}/.pm2/logs" -type f -name '*.log' -size +10M -exec truncate -s 0 {} +
+            fi
+            echo "── disk before snapshot ──"
+            df -h . || true
+
             # ── 1. Snapshot the previous build for rollback ──────────────
             #
             # If the new build crashes on boot we restore this and restart,

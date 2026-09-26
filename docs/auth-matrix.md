@@ -10,7 +10,6 @@ project endpoint. Land it as part of every PR that adds or moves a route.
 | `owner`  | `UserProject.userId === currentUserId`  | Full access incl. settings.     |
 | `admin`  | `ProjectMember.role === 'admin'`        | Chat, patch, edit, error mgmt.  |
 | `user`   | `ProjectMember.role === 'user'`         | Read-only collaborator.         |
-| `public` | unauthenticated                         | `/public/*` only.               |
 
 The `requireEditor` name is **deprecated** — use `requireOwnerOrAdmin`. It
 implied a "viewer" role existed and editors were a subset; neither is true.
@@ -93,16 +92,6 @@ implied a "viewer" role existed and editors were a subset; neither is true.
 | `POST   /projects/:id/errors`                   | viewer               |
 | `GET    /projects/:id/errors`                   | viewer               |
 | `PUT    /projects/:id/errors/:errorId`          | owner-or-admin       |
-
-### Sharing / public
-
-| Endpoint                                        | Required role        |
-| ----------------------------------------------- | -------------------- |
-| `PUT    /projects/:id/public`                   | owner                |
-| `POST   /projects/:id/remix`                    | authenticated        |
-| `GET    /public/projects/:slug`                 | public               |
-| `GET    /public/templates`                      | public               |
-| `GET    /public/templates/categories`           | public               |
 
 ### AI codegen (`ai.controller.ts`)
 
